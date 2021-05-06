@@ -1,0 +1,9 @@
+include "aws",
+        "aws:api-handler",
+        "aws:lib-common",
+        "aws:worker",
+        "deployment",
+        "scripts",
+        "scripts:post-deploy",
+        "scripts:publish",
+        "scripts:test-service"
