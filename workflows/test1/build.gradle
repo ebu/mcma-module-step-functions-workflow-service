@@ -1,0 +1,3 @@
+task build {
+    dependsOn "step1:build"
+}

@@ -1,0 +1,3 @@
+task build {
+    dependsOn "test1:build"
+}

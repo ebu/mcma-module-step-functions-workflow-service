@@ -1,0 +1,35 @@
+import { Context } from "aws-lambda";
+
+import { McmaException, McmaTracker } from "@mcma/core";
+import { AwsCloudWatchLoggerProvider } from "@mcma/aws-logger";
+
+const loggerProvider = new AwsCloudWatchLoggerProvider("test1-workflow-step1-validate-workflow-input", process.env.LogGroupName);
+
+type InputEvent = {
+    input: {
+    }
+    tracker?: McmaTracker
+}
+
+export async function handler(event: InputEvent, context: Context) {
+    const logger = loggerProvider.get(context.awsRequestId, event.tracker);
+    try {
+        logger.functionStart(context.awsRequestId);
+        logger.debug(event);
+        logger.debug(context);
+
+        // check the input and return mediaFileLocator which service as input for the AI workflows
+        if (!event || !event.input) {
+            throw new McmaException("Missing workflow input");
+        }
+
+        throw new McmaException("disabled")
+    } catch (error) {
+        logger.error("Failed to validate workflow input");
+        logger.error(error.toString());
+        throw new McmaException("Failed to validate workflow input", error);
+    } finally {
+        logger.functionEnd(context.awsRequestId);
+        await loggerProvider.flush();
+    }
+}

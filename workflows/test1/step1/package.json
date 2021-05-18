@@ -1,0 +1,19 @@
+{
+    "name": "validate-workflow-input",
+    "version": "0.0.0",
+    "description": "",
+    "private": true,
+    "license": "Apache-2.0",
+    "dependencies": {
+        "@mcma/aws-client": "0.13.24",
+        "@mcma/aws-logger": "0.13.24",
+        "@mcma/aws-s3": "0.13.24",
+        "@mcma/client": "0.13.24",
+        "@mcma/core": "0.13.24",
+        "aws-sdk": "^2.907.0"
+    },
+    "devDependencies": {
+        "@types/aws-lambda": "^8.10.63",
+        "@types/node": "^10.17.35"
+    }
+}
