@@ -110,7 +110,7 @@ export async function handler(event: ScheduledEvent, context: Context) {
                     }
                 }
 
-                let progress = 0;
+                let progress = computeProgress(stateMachine, historyEvents);
 
                 switch (execution.status) {
                     case "RUNNING":
@@ -227,4 +227,15 @@ export async function handler(event: ScheduledEvent, context: Context) {
         logger.functionEnd(context.awsRequestId);
         await loggerProvider.flush();
     }
+}
+
+function computeProgress(stateMachine: AWS.StepFunctions.DescribeStateMachineForExecutionOutput, historyEvents: AWS.StepFunctions.HistoryEvent[]) {
+    const workflowDefinition = JSON.parse(stateMachine.definition);
+
+
+
+
+
+
+    return 0;
 }
