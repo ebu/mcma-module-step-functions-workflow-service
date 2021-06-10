@@ -115,3 +115,29 @@ module "test_workflow_1" {
 
   log_group = aws_cloudwatch_log_group.main
 }
+
+########################################
+# Bucket for testing
+########################################
+resource "aws_s3_bucket" "upload" {
+  bucket = "${var.global_prefix}-upload-${var.aws_region}"
+
+  force_destroy = true
+
+  lifecycle_rule {
+    enabled = true
+    id = "Delete after 1 day"
+    expiration {
+      days = 1
+    }
+  }
+}
+
+resource "aws_s3_bucket_public_access_block" "upload" {
+  bucket = aws_s3_bucket.upload.id
+
+  block_public_acls       = true
+  block_public_policy     = true
+  ignore_public_acls      = true
+  restrict_public_buckets = true
+}
