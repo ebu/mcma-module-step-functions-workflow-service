@@ -34,7 +34,8 @@ module "service_registry" {
 
   services = [
     module.job_processor.service_definition,
-    module.stepfunctions_workflow_service.service_definition
+    module.mediainfo_ame_service.service_definition,
+    module.stepfunctions_workflow_service.service_definition,
   ]
 }
 
@@ -49,6 +50,25 @@ module "job_processor" {
 
   stage_name     = var.environment_type
   dashboard_name = var.global_prefix
+
+  aws_account_id = var.aws_account_id
+  aws_region     = var.aws_region
+
+  service_registry = module.service_registry
+
+  log_group = aws_cloudwatch_log_group.main
+}
+
+#########################
+# Job Processor Module
+#########################
+
+module "mediainfo_ame_service" {
+  source = "https://ch-ebu-mcma-module-repository.s3.eu-central-1.amazonaws.com/ebu/mediainfo-ame-service/aws/0.0.1/module.zip"
+
+  prefix = "${var.global_prefix}-mediainfo-ame-service"
+
+  stage_name     = var.environment_type
 
   aws_account_id = var.aws_account_id
   aws_region     = var.aws_region
