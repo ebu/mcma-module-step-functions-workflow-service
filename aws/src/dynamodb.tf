@@ -33,25 +33,25 @@ resource "aws_dynamodb_table_item" "workflows" {
   range_key  = aws_dynamodb_table.service_table.range_key
 
   item = jsonencode({
-    resource_pkey: {
-      S: "/workflows"
+    resource_pkey = {
+      S = "/workflows"
     }
-    resource_skey: {
-      S: random_uuid.workflows[each.key].result
+    resource_skey = {
+      S = random_uuid.workflows[each.key].result
     }
-    resource: {
-      M: {
-        "@type": {
-          "S": "StepFunctionsWorkflow"
+    resource      = {
+      M = {
+        "@type"         = {
+          "S" = "StepFunctionsWorkflow"
         }
-        id: {
-          "S": "${local.service_url}/workflows/${random_uuid.workflows[each.key].result}"
+        id              = {
+          "S" = "${local.service_url}/workflows/${random_uuid.workflows[each.key].result}"
         }
-        name: {
-          "S": each.key
+        name            = {
+          "S" = each.key
         }
-        stateMachineArn: {
-          "S": each.value.state_machine_arn
+        stateMachineArn = {
+          "S" = each.value.state_machine_arn
         }
       }
     }

@@ -45,12 +45,7 @@ export async function processJobAssignment(providers: ProviderCollection, worker
             throw new McmaException("Job has type '" + jobAssignmentHelper.job["@type"] + "', which does not match expected job type 'WorkflowJob'.");
         }
 
-        const workflows = await getWorkflows(table);
-
-        const selectedWorkflow = workflows.find(wf => wf.name === jobAssignmentHelper.profile.name);
-        if (!selectedWorkflow) {
-            throw new McmaException("Job profile '" + jobAssignmentHelper.profile.name + "' is not supported.");
-        }
+        const selectedWorkflow = await getWorkflowByName(table, jobAssignmentHelper.profile.name);
 
         jobAssignmentHelper.validateJob();
 
@@ -76,7 +71,18 @@ export async function processJobAssignment(providers: ProviderCollection, worker
     }
 }
 
-async function getWorkflows(table: DocumentDatabaseTable) {
+async function getWorkflowByName(table: DocumentDatabaseTable, workflowName: string): Promise<Workflow> {
+    const workflows = await getWorkflows(table);
+
+    const selectedWorkflow = workflows.find(wf => wf.name === workflowName);
+    if (!selectedWorkflow) {
+        throw new McmaException(`JobProfile '${workflowName}' is not supported.`);
+    }
+
+    return selectedWorkflow;
+}
+
+async function getWorkflows(table: DocumentDatabaseTable): Promise<Workflow[]> {
     const workflows: Workflow[] = [];
 
     const queryParams: Query<Workflow> = {

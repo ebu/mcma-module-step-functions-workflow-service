@@ -7,4 +7,6 @@ include "aws",
         "scripts",
         "scripts:publish",
         "scripts:test-service",
-        "workflows:test1:step1"
+        "workflows:test1:step1",
+        "workflows:test1:step2",
+        "workflows:test1:step3"

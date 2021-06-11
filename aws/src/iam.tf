@@ -6,14 +6,14 @@ resource "aws_iam_role" "lambda_execution" {
   name               = format("%.64s", "${var.prefix}.${var.aws_region}.lambda-execution")
   path               = var.iam_role_path
   assume_role_policy = jsonencode({
-    Version   : "2012-10-17",
-    Statement : [
+    Version   = "2012-10-17",
+    Statement = [
       {
-        Sid       : "AllowLambdaAssumingRole"
-        Effect    : "Allow"
-        Action    : "sts:AssumeRole",
-        Principal : {
-          "Service" : "lambda.amazonaws.com"
+        Sid       = "AllowLambdaAssumingRole"
+        Effect    = "Allow"
+        Action    = "sts:AssumeRole"
+        Principal = {
+          "Service" = "lambda.amazonaws.com"
         }
       }
     ]
@@ -29,26 +29,26 @@ resource "aws_iam_policy" "lambda_execution" {
     Version   = "2012-10-17",
     Statement = concat([
       {
-        Sid      : "AllowLambdaWritingToLogs"
-        Effect   : "Allow",
-        Action   : "logs:*",
-        Resource : "*"
+        Sid      = "AllowLambdaWritingToLogs"
+        Effect   = "Allow",
+        Action   = "logs:*",
+        Resource = "*"
       },
       {
-        Sid      : "ListAndDescribeDynamoDBTables",
-        Effect   : "Allow",
-        Action   : [
+        Sid      = "ListAndDescribeDynamoDBTables",
+        Effect   = "Allow",
+        Action   = [
           "dynamodb:List*",
           "dynamodb:DescribeReservedCapacity*",
           "dynamodb:DescribeLimits",
           "dynamodb:DescribeTimeToLive"
         ],
-        Resource : "*"
+        Resource = "*"
       },
       {
-        Sid      : "SpecificTable",
-        Effect   : "Allow",
-        Action   : [
+        Sid      = "SpecificTable",
+        Effect   = "Allow",
+        Action   = [
           "dynamodb:BatchGet*",
           "dynamodb:DescribeStream",
           "dynamodb:DescribeTable",
@@ -61,21 +61,21 @@ resource "aws_iam_policy" "lambda_execution" {
           "dynamodb:Update*",
           "dynamodb:PutItem"
         ],
-        Resource : [
+        Resource = [
           aws_dynamodb_table.service_table.arn
         ]
       },
       {
-        Sid      : "AllowInvokingWorkerLambda"
-        Effect   : "Allow"
-        Action   : "lambda:InvokeFunction"
-        Resource : "arn:aws:lambda:${var.aws_region}:${var.aws_account_id}:function:${local.worker_lambda_name}"
+        Sid      = "AllowInvokingWorkerLambda"
+        Effect   = "Allow"
+        Action   = "lambda:InvokeFunction"
+        Resource = "arn:aws:lambda:${var.aws_region}:${var.aws_account_id}:function:${local.worker_lambda_name}"
       },
       {
-        Sid      : "AllowInvokingApiGateway"
-        Effect   : "Allow"
-        Action   : "execute-api:Invoke"
-        Resource : "arn:aws:execute-api:*:*:*"
+        Sid      = "AllowInvokingApiGateway"
+        Effect   = "Allow"
+        Action   = "execute-api:Invoke"
+        Resource = "arn:aws:execute-api:*:*:*"
       },
       {
         Sid      = "AllowEnablingDisablingRule"
@@ -87,42 +87,55 @@ resource "aws_iam_policy" "lambda_execution" {
     length(var.workflows) > 0 ?
     [
       {
-        Sid : "AllowStepFunctions"
-        Effect: "Allow"
-        Action: [
+        Sid      = "AllowStepFunctions"
+        Effect   = "Allow"
+        Action   = [
           "states:DescribeStateMachine",
           "states:StartExecution",
           "states:ListExecutions"
         ]
-        Resource: [for s in var.workflows : s.state_machine_arn]
+        Resource = [for w in var.workflows : w.state_machine_arn]
       },
       {
-        Sid:"AllowStepFunctionsExecutions"
-        Effect:"Allow"
-        Action: [
+        Sid      = "AllowStepFunctionsExecutions"
+        Effect   = "Allow"
+        Action   = [
           "states:DescribeExecution",
           "states:DescribeStateMachineForExecution",
           "states:GetExecutionHistory",
           "states:StopExecution",
         ]
-        Resource: [for s in var.workflows : replace("${s.state_machine_arn}:*", "stateMachine", "execution")]
+        Resource = [for w in var.workflows : replace("${w.state_machine_arn}:*", "stateMachine", "execution")]
       },
     ]: [],
+    length(local.activity_arns) > 0 ?
+    [
+      {
+        Sid      = "AllowManagingActivities"
+        Effect   = "Allow"
+        Action   = [
+          "states:DescribeActivity",
+          "states:SendTaskSuccess",
+          "states:SendTaskFailure",
+        ]
+        Resource = local.activity_arns
+      }
+    ] : [],
     var.xray_tracing_enabled ?
     [{
-      Sid      : "AllowLambdaWritingToXRay"
-      Effect   : "Allow",
-      Action   : [
+      Sid      = "AllowLambdaWritingToXRay"
+      Effect   = "Allow",
+      Action   = [
         "xray:PutTraceSegments",
         "xray:PutTelemetryRecords"
       ],
-      Resource : "*"
+      Resource = "*"
     }]: [],
     var.dead_letter_config_target != null ?
     [{
-      Effect: "Allow",
-      Action: "sqs:SendMessage",
-      Resource: var.dead_letter_config_target
+      Effect   = "Allow",
+      Action   = "sqs:SendMessage",
+      Resource = var.dead_letter_config_target
     }] : [])
   })
 }
@@ -130,4 +143,8 @@ resource "aws_iam_policy" "lambda_execution" {
 resource "aws_iam_role_policy_attachment" "lambda_execution" {
   role       = aws_iam_role.lambda_execution.id
   policy_arn = aws_iam_policy.lambda_execution.arn
+}
+
+locals {
+  activity_arns = flatten([for w in var.workflows : [for a in coalesce(w.activity_arns, []) : a]])
 }

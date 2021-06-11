@@ -1,3 +1,11 @@
+##################################
+# Enable optional variable attributes
+##################################
+
+terraform {
+  experiments = [module_variable_optional_attrs]
+}
+
 #########################
 # Environment Variables
 #########################
@@ -36,20 +44,21 @@ variable "dead_letter_config_target" {
 
 variable "workflows" {
   type        = list(object({
-    name                    = string
-    input_parameters         = list(object({
+    name                      = string
+    input_parameters          = optional(list(object({
       parameter_name = string
       parameter_type = string
-    }))
-    optional_input_parameters = list(object({
+    })))
+    optional_input_parameters = optional(list(object({
       parameter_name = string
       parameter_type = string
-    }))
-    output_parameters        = list(object({
+    })))
+    output_parameters         = optional(list(object({
       parameter_name = string
       parameter_type = string
-    }))
-    state_machine_arn       = string
+    })))
+    state_machine_arn         = string
+    activity_arns             = optional(list(string))
   }))
   description = "list of workflows that the step function service can execute"
 }

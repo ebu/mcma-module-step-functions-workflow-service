@@ -26,7 +26,9 @@ export async function processCancel(providers: ProviderCollection, workerRequest
             return;
         }
 
-        await context.stepFunctions.stopExecution().promise();
+        await context.stepFunctions.stopExecution({
+            executionArn: jobAssignmentHelper.jobOutput.get<string>("executionArn")
+        }).promise();
 
         await jobAssignmentHelper.cancel();
     } catch (error) {

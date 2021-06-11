@@ -1,3 +1,5 @@
 task build {
     dependsOn "step1:build"
+    dependsOn "step2:build"
+    dependsOn "step3:build"
 }

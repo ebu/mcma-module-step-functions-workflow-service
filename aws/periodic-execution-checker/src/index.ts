@@ -100,7 +100,7 @@ export async function handler(event: ScheduledEvent, context: Context) {
 
                 if (execution.output) {
                     try {
-                        let output = JSON.parse(execution.output);
+                        const output = JSON.parse(execution.output);
                         if (typeof output === "object") {
                             workflowOutput = output;
                         }
@@ -119,7 +119,7 @@ export async function handler(event: ScheduledEvent, context: Context) {
                         break;
                     case "SUCCEEDED":
                         await table.delete(workflowExecution.id);
-                        if (typeof workflowOutput?.output === "object") {
+                        if (workflowOutput?.output !== null && typeof workflowOutput?.output === "object") {
                             for (const key of Object.keys(workflowOutput?.output)) {
                                 jobAssignmentHelper.jobOutput.set(key, workflowOutput[key]);
                             }

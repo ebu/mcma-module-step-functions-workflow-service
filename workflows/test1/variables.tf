@@ -13,6 +13,12 @@ variable "prefix" {
   description = "Prefix for all managed resources in this module"
 }
 
+variable "tags" {
+  type        = map(string)
+  description = "Tags applied to created resources"
+  default     = {}
+}
+
 #########################
 # AWS Variables
 #########################

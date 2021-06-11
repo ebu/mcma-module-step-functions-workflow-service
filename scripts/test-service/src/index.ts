@@ -13,6 +13,8 @@ import { awsV4Auth } from "@mcma/aws-client";
 const AWS_CREDENTIALS = "../../deployment/aws-credentials.json";
 const TERRAFORM_OUTPUT = "../../deployment/terraform.output.json";
 
+const MEDIA_FILE = "C:/Media/2015_GF_ORF_00_18_09_conv.mp4";
+
 AWS.config.loadFromPath(AWS_CREDENTIALS);
 
 const s3 = new AWS.S3();
@@ -30,7 +32,20 @@ async function uploadFileToBucket(bucket: string, filename: string) {
         ContentType: mime.lookup(filename) || "application/octet-stream"
     };
 
-    await s3.upload(uploadParams).promise();
+    let isPresent = true;
+
+    try {
+        console.log("Checking if file is already present");
+        await s3.headObject({ Bucket: uploadParams.Bucket, Key: uploadParams.Key }).promise();
+        console.log("Already present. Not uploading again");
+    } catch (error) {
+        isPresent = false;
+    }
+
+    if (!isPresent) {
+        console.log("Not present. Uploading...");
+        await s3.upload(uploadParams).promise();
+    }
 
     return new AwsS3FileLocator({
         bucket: uploadParams.Bucket,
@@ -42,6 +57,7 @@ async function uploadFileToBucket(bucket: string, filename: string) {
         })
     });
 }
+
 
 async function waitForJobCompletion(job: Job, resourceManager: ResourceManager): Promise<Job> {
     console.log("Job is " + job.status);
@@ -58,7 +74,7 @@ async function waitForJobCompletion(job: Job, resourceManager: ResourceManager):
     return job;
 }
 
-async function startWorkflowJob(resourceManager: ResourceManager) {
+async function startJob(resourceManager: ResourceManager, inputFile: AwsS3FileLocator) {
     let [jobProfile] = await resourceManager.query(JobProfile, { name: "TestWorkflow" });
 
     // if not found bail out
@@ -69,7 +85,7 @@ async function startWorkflowJob(resourceManager: ResourceManager) {
     let distributionJob = new WorkflowJob({
         jobProfileId: jobProfile.id,
         jobInput: new JobParameterBag({
-
+            inputFile
         }),
         tracker: new McmaTracker({
             "id": uuidv4(),
@@ -80,11 +96,11 @@ async function startWorkflowJob(resourceManager: ResourceManager) {
     return resourceManager.create(distributionJob);
 }
 
-async function testWorkflowJob(resourceManager: ResourceManager) {
+async function testJob(resourceManager: ResourceManager, inputFile: AwsS3FileLocator) {
     let job;
 
     console.log("Creating job");
-    job = await startWorkflowJob(resourceManager);
+    job = await startJob(resourceManager, inputFile);
 
     console.log("job.id = " + job.id);
     job = await waitForJobCompletion(job, resourceManager);
@@ -107,9 +123,14 @@ async function main() {
         servicesAuthContext
     };
 
-    let resourceManager = new ResourceManager(resourceManagerConfig, new AuthProvider().add(awsV4Auth(AWS)));
+    const  resourceManager = new ResourceManager(resourceManagerConfig, new AuthProvider().add(awsV4Auth(AWS)));
 
-    await testWorkflowJob(resourceManager);
+    const uploadBucket = terraformOutput.upload_bucket.value;
+
+    console.log(`Uploading media file ${MEDIA_FILE}`);
+    const mediaFileLocator = await uploadFileToBucket(uploadBucket, MEDIA_FILE);
+
+    await testJob(resourceManager, mediaFileLocator);
 }
 
 main().then(() => console.log("Done")).catch(e => console.error(e));

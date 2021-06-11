@@ -5,3 +5,7 @@ output "service_registry" {
     services_url: module.service_registry.services_url
   }
 }
+
+output "upload_bucket" {
+  value = aws_s3_bucket.upload.bucket
+}
