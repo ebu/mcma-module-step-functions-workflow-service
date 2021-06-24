@@ -60,7 +60,7 @@ module "job_processor" {
 }
 
 #########################
-# Job Processor Module
+# Media Info AME Service
 #########################
 
 module "mediainfo_ame_service" {
