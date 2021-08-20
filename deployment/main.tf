@@ -3,9 +3,8 @@
 #########################
 
 provider "aws" {
-  access_key = var.aws_access_key
-  secret_key = var.aws_secret_key
-  region     = var.aws_region
+  profile = var.aws_profile
+  region  = var.aws_region
 }
 
 ############################################
@@ -68,7 +67,7 @@ module "mediainfo_ame_service" {
 
   prefix = "${var.global_prefix}-mediainfo-ame-service"
 
-  stage_name     = var.environment_type
+  stage_name = var.environment_type
 
   aws_account_id = var.aws_account_id
   aws_region     = var.aws_region
@@ -126,7 +125,7 @@ resource "aws_s3_bucket" "upload" {
 
   lifecycle_rule {
     enabled = true
-    id = "Delete after 1 day"
+    id      = "Delete after 1 day"
     expiration {
       days = 1
     }

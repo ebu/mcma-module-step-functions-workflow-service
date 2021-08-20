@@ -10,12 +10,14 @@ import { Job, JobParameterBag, JobProfile, JobStatus, McmaException, McmaTracker
 import { AwsS3FileLocator } from "@mcma/aws-s3";
 import { awsV4Auth } from "@mcma/aws-client";
 
-const AWS_CREDENTIALS = "../../deployment/aws-credentials.json";
 const TERRAFORM_OUTPUT = "../../deployment/terraform.output.json";
 
 const MEDIA_FILE = "C:/Media/2015_GF_ORF_00_18_09_conv.mp4";
 
-AWS.config.loadFromPath(AWS_CREDENTIALS);
+const { AwsProfile, AwsRegion } = process.env;
+
+AWS.config.credentials = new AWS.SharedIniFileCredentials({ profile: AwsProfile });
+AWS.config.region = AwsRegion;
 
 const s3 = new AWS.S3();
 
