@@ -1,44 +1,8 @@
 {
     "namespace": "@MODULE_NAMESPACE@",
     "name": "@MODULE_NAME@",
-    "provider": "aws",
+    "provider": "AWS",
     "version": "@MODULE_VERSION@",
     "displayName": "Step Functions Workflow Service",
-    "description": "The Step Functions Workflow Service is used for executing Step Functions workflows",
-    "inputParameters": [
-        {
-            "name": "name",
-            "type": "string"
-        },
-        {
-            "name": "prefix",
-            "type": "string"
-        },
-        {
-            "name": "stage_name",
-            "type": "string"
-        },
-        {
-            "name": "log_group_name",
-            "type": "string"
-        },
-        {
-            "name": "aws_account_id",
-            "type": "string"
-        },
-        {
-            "name": "aws_region",
-            "type": "string"
-        },
-        {
-            "name": "service_registry",
-            "type": "object"
-        }
-    ],
-    "outputParameters": [
-        {
-            "name": "service_definition",
-            "type": "object"
-        }
-    ]
+    "description": "The Step Functions Workflow Service is used for executing Step Functions workflows"
 }

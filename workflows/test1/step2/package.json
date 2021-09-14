@@ -5,11 +5,11 @@
     "private": true,
     "license": "Apache-2.0",
     "dependencies": {
-        "@mcma/aws-client": "0.13.24",
-        "@mcma/aws-logger": "0.13.24",
-        "@mcma/aws-s3": "0.13.24",
-        "@mcma/client": "0.13.24",
-        "@mcma/core": "0.13.24",
+        "@mcma/aws-client": "0.13.26",
+        "@mcma/aws-logger": "0.13.26",
+        "@mcma/aws-s3": "0.13.26",
+        "@mcma/client": "0.13.26",
+        "@mcma/core": "0.13.26",
         "aws-sdk": "^2.907.0"
     },
     "devDependencies": {

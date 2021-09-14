@@ -20,7 +20,7 @@ resource "aws_lambda_function" "api_handler" {
   role             = aws_iam_role.lambda_execution.arn
   handler          = "index.handler"
   source_code_hash = filebase64sha256("${path.module}/lambdas/api-handler.zip")
-  runtime          = "nodejs12.x"
+  runtime          = "nodejs14.x"
   timeout          = "30"
   memory_size      = "2048"
 
@@ -56,7 +56,7 @@ resource "aws_lambda_function" "worker" {
   role             = aws_iam_role.lambda_execution.arn
   handler          = "index.handler"
   source_code_hash = filebase64sha256("${path.module}/lambdas/worker.zip")
-  runtime          = "nodejs12.x"
+  runtime          = "nodejs14.x"
   timeout          = "900"
   memory_size      = "2048"
 
@@ -102,7 +102,7 @@ resource "aws_lambda_function" "periodic_execution_checker" {
   role             = aws_iam_role.lambda_execution.arn
   handler          = "index.handler"
   source_code_hash = filebase64sha256("${path.module}/lambdas/periodic-execution-checker.zip")
-  runtime          = "nodejs12.x"
+  runtime          = "nodejs14.x"
   timeout          = "900"
   memory_size      = "3008"
 

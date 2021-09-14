@@ -121,7 +121,7 @@ resource "aws_lambda_function" step1 {
   role             = aws_iam_role.lambda_execution.arn
   handler          = "index.handler"
   source_code_hash = filebase64sha256("${path.module}/step1/build/dist/lambda.zip")
-  runtime          = "nodejs12.x"
+  runtime          = "nodejs14.x"
   timeout          = "900"
   memory_size      = "3008"
 
@@ -144,7 +144,7 @@ resource "aws_lambda_function" step2 {
   role             = aws_iam_role.lambda_execution.arn
   handler          = "index.handler"
   source_code_hash = filebase64sha256("${path.module}/step2/build/dist/lambda.zip")
-  runtime          = "nodejs12.x"
+  runtime          = "nodejs14.x"
   timeout          = "900"
   memory_size      = "3008"
 
@@ -174,7 +174,7 @@ resource "aws_lambda_function" step3 {
   role             = aws_iam_role.lambda_execution.arn
   handler          = "index.handler"
   source_code_hash = filebase64sha256("${path.module}/step3/build/dist/lambda.zip")
-  runtime          = "nodejs12.x"
+  runtime          = "nodejs14.x"
   timeout          = "900"
   memory_size      = "3008"
 

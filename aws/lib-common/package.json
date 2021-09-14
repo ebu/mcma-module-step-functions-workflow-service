@@ -10,21 +10,21 @@
         "uuid": "^8.3.2"
     },
     "devDependencies": {
-        "@mcma/aws-dynamodb": "0.13.24",
-        "@mcma/core": "0.13.24",
-        "@mcma/client": "0.13.24",
-        "@mcma/data": "0.13.24",
-        "@mcma/worker-invoker": "0.13.24",
+        "@mcma/aws-dynamodb": "0.13.26",
+        "@mcma/core": "0.13.26",
+        "@mcma/client": "0.13.26",
+        "@mcma/data": "0.13.26",
+        "@mcma/worker-invoker": "0.13.26",
         "@types/node": "^12.20.13",
         "@types/uuid": "^8.3.0",
         "aws-sdk": "^2.907.0"
     },
     "peerDependencies": {
-        "@mcma/aws-dynamodb": "0.13.24",
-        "@mcma/core": "0.13.24",
-        "@mcma/client": "0.13.24",
-        "@mcma/data": "0.13.24",
-        "@mcma/worker-invoker": "0.13.24",
+        "@mcma/aws-dynamodb": "0.13.26",
+        "@mcma/core": "0.13.26",
+        "@mcma/client": "0.13.26",
+        "@mcma/data": "0.13.26",
+        "@mcma/worker-invoker": "0.13.26",
         "aws-sdk": "^2.907.0"
     }
 }
