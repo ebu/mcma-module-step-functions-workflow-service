@@ -109,7 +109,8 @@ async function executeWorkflow(providers: ProviderCollection, jobAssignmentHelpe
         tracker: jobAssignmentHelper.jobAssignment.tracker
     };
 
-    logger.info("Starting execution of workflow '" + workflow.name + "' with input:", workflowInput);
+    logger.info("Starting execution of workflow '" + workflow.name + "' with input:");
+    logger.info(workflowInput);
     const data = await context.stepFunctions.startExecution({
         input: JSON.stringify(workflowInput),
         stateMachineArn: workflow.stateMachineArn

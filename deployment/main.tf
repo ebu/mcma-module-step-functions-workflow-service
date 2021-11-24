@@ -7,6 +7,11 @@ provider "aws" {
   region  = var.aws_region
 }
 
+#################################
+# Retrieving AWS account details
+#################################
+data "aws_caller_identity" "current" {}
+
 ############################################
 # Cloud watch log group for central logging
 ############################################
@@ -20,13 +25,13 @@ resource "aws_cloudwatch_log_group" "main" {
 #########################
 
 module "service_registry" {
-  source = "https://ch-ebu-mcma-module-repository.s3.eu-central-1.amazonaws.com/ebu/service-registry/aws/0.13.24.1/module.zip"
+  source = "https://ch-ebu-mcma-module-repository.s3.eu-central-1.amazonaws.com/ebu/service-registry/aws/0.13.27/module.zip"
 
   prefix = "${var.global_prefix}-service-registry"
 
   stage_name = var.environment_type
 
-  aws_account_id = var.aws_account_id
+  aws_account_id = data.aws_caller_identity.current.account_id
   aws_region     = var.aws_region
 
   log_group = aws_cloudwatch_log_group.main
@@ -43,14 +48,14 @@ module "service_registry" {
 #########################
 
 module "job_processor" {
-  source = "https://ch-ebu-mcma-module-repository.s3.eu-central-1.amazonaws.com/ebu/job-processor/aws/0.13.24.1/module.zip"
+  source = "https://ch-ebu-mcma-module-repository.s3.eu-central-1.amazonaws.com/ebu/job-processor/aws/0.13.27/module.zip"
 
   prefix = "${var.global_prefix}-job-processor"
 
   stage_name     = var.environment_type
   dashboard_name = var.global_prefix
 
-  aws_account_id = var.aws_account_id
+  aws_account_id = data.aws_caller_identity.current.account_id
   aws_region     = var.aws_region
 
   service_registry = module.service_registry
@@ -69,7 +74,7 @@ module "mediainfo_ame_service" {
 
   stage_name = var.environment_type
 
-  aws_account_id = var.aws_account_id
+  aws_account_id = data.aws_caller_identity.current.account_id
   aws_region     = var.aws_region
 
   service_registry = module.service_registry
@@ -88,10 +93,11 @@ module "stepfunctions_workflow_service" {
 
   stage_name = var.environment_type
 
-  aws_account_id = var.aws_account_id
+  aws_account_id = data.aws_caller_identity.current.account_id
   aws_region     = var.aws_region
 
   service_registry = module.service_registry
+  job_processor = module.job_processor
 
   log_group = aws_cloudwatch_log_group.main
 
@@ -107,7 +113,7 @@ module "test_workflow_1" {
 
   prefix = "${var.global_prefix}-test-workflow-1"
 
-  aws_account_id = var.aws_account_id
+  aws_account_id = data.aws_caller_identity.current.account_id
   aws_region     = var.aws_region
 
   service_registry = module.service_registry

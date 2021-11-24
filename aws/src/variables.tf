@@ -63,6 +63,10 @@ variable "workflows" {
   description = "list of workflows that the step function service can execute"
 }
 
+locals {
+  activity_arns = flatten([for w in var.workflows : [for a in coalesce(w.activity_arns, []) : a]])
+}
+
 #########################
 # AWS Variables
 #########################
@@ -95,8 +99,23 @@ variable "iam_policy_path" {
 
 variable "service_registry" {
   type = object({
-    auth_type    = string,
-    services_url = string,
+    auth_type              = string,
+    services_url           = string,
+    aws_apigatewayv2_stage = object({
+      service_api = object({
+        execution_arn = string
+      })
+    })
+  })
+}
+
+variable "job_processor" {
+  type = object({
+    aws_apigatewayv2_stage = object({
+      service_api = object({
+        execution_arn = string
+      })
+    })
   })
 }
 

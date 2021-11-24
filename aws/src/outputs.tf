@@ -9,74 +9,74 @@ output "service_definition" {
       }
     ]
     job_type     = "WorkflowJob"
-    job_profiles = [for workflow in var.workflows : {
+    job_profiles = [
+    for workflow in var.workflows : {
       name                      = workflow.name
       input_parameters          = workflow.input_parameters
       optional_input_parameters = workflow.optional_input_parameters
       output_parameters         = workflow.output_parameters
-    }]
+    }
+    ]
   }
 }
 
 output "aws_iam_role" {
   value = {
-    lambda_execution: aws_iam_role.lambda_execution
+    api_handler                = aws_iam_role.api_handler
+    periodic_execution_checker = aws_iam_role.periodic_execution_checker
+    worker                     = aws_iam_role.worker
   }
 }
 
-output "aws_iam_policy" {
+output "aws_iam_role_policy" {
   value = {
-    lambda_execution: aws_iam_policy.lambda_execution
-  }
-}
-
-output "aws_iam_role_policy_attachment" {
-  value = {
-    lambda_execution: aws_iam_role_policy_attachment.lambda_execution
+    api_handler                = aws_iam_role_policy.api_handler
+    periodic_execution_checker = aws_iam_role_policy.periodic_execution_checker
+    worker                     = aws_iam_role_policy.worker
   }
 }
 
 output "aws_dynamodb_table" {
   value = {
-    service_table: aws_dynamodb_table.service_table
+    service_table : aws_dynamodb_table.service_table
   }
 }
 
 output "aws_lambda_function" {
   value = {
-    api_handler: aws_lambda_function.api_handler
-    worker: aws_lambda_function.worker
+    api_handler : aws_lambda_function.api_handler
+    worker : aws_lambda_function.worker
   }
 }
 
 output "aws_apigatewayv2_api" {
   value = {
-    service_api: aws_apigatewayv2_api.service_api
+    service_api : aws_apigatewayv2_api.service_api
   }
 }
 
 output "aws_apigatewayv2_integration" {
   value = {
-    service_api: aws_apigatewayv2_integration.service_api
+    service_api : aws_apigatewayv2_integration.service_api
   }
 }
 
 output "aws_apigatewayv2_route" {
   value = {
-    service_api_default: aws_apigatewayv2_route.service_api_default
-    service_api_options: aws_apigatewayv2_route.service_api_options
+    service_api_default : aws_apigatewayv2_route.service_api_default
+    service_api_options : aws_apigatewayv2_route.service_api_options
   }
 }
 
 output "aws_lambda_permission" {
   value = {
-    service_api_default: aws_lambda_permission.service_api_default
-    service_api_options: aws_lambda_permission.service_api_options
+    service_api_default : aws_lambda_permission.service_api_default
+    service_api_options : aws_lambda_permission.service_api_options
   }
 }
 
 output "aws_apigatewayv2_stage" {
   value = {
-    service_api: aws_apigatewayv2_stage.service_api
+    service_api : aws_apigatewayv2_stage.service_api
   }
 }
