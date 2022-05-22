@@ -2,14 +2,14 @@ import { Context } from "aws-lambda";
 
 import { McmaException, McmaTracker } from "@mcma/core";
 import { AwsCloudWatchLoggerProvider } from "@mcma/aws-logger";
-import { AwsS3FileLocator } from "@mcma/aws-s3";
+import { S3Locator } from "@mcma/aws-s3";
 import { default as axios } from "axios";
 
 const loggerProvider = new AwsCloudWatchLoggerProvider("test1-workflow-step1", process.env.LogGroupName);
 
 type InputEvent = {
     input?: {
-        inputFile?: AwsS3FileLocator
+        inputFile?: S3Locator
     }
     tracker?: McmaTracker
 }

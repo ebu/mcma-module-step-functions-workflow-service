@@ -15,10 +15,10 @@ task copyWorker(type: Copy) {
 }
 
 task copyPeriodicExecutionChecker(type: Copy) {
-    dependsOn "periodic-execution-checker:build"
-    from file("periodic-execution-checker/build/dist/lambda.zip")
+    dependsOn "eventbridge-handler:build"
+    from file("eventbridge-handler/build/dist/lambda.zip")
     into "build/staging/lambdas"
-    rename { "periodic-execution-checker.zip" }
+    rename { "eventbridge-handler.zip" }
 }
 
 build.dependsOn copyApiHandler

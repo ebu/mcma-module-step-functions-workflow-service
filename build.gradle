@@ -1,4 +1,4 @@
-def requiredVersionTerraform = "~1.0.9"
+def requiredVersionTerraform = "^1.1.9"
 def requiredVersionNodeJS = "~14.17.4"
 def requiredVersionTsc = "^4.3.5"
 

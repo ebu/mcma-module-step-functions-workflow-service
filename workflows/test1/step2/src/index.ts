@@ -2,7 +2,7 @@ import { Context } from "aws-lambda";
 
 import { AmeJob, JobParameterBag, JobProfile, McmaException, McmaTracker, NotificationEndpoint, NotificationEndpointProperties } from "@mcma/core";
 import { AwsCloudWatchLoggerProvider } from "@mcma/aws-logger";
-import { AwsS3FileLocator } from "@mcma/aws-s3";
+import { S3Locator } from "@mcma/aws-s3";
 import * as AWS from "aws-sdk";
 import { awsV4Auth } from "@mcma/aws-client";
 import { AuthProvider, getResourceManagerConfig, ResourceManager } from "@mcma/client";
@@ -16,7 +16,7 @@ const { ActivityArn } = process.env;
 
 type InputEvent = {
     input?: {
-        inputFile?: AwsS3FileLocator
+        inputFile?: S3Locator
     }
     tracker?: McmaTracker
     notificationEndpoint?: NotificationEndpointProperties

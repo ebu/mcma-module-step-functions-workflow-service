@@ -68,14 +68,13 @@ module "job_processor" {
 #########################
 
 module "mediainfo_ame_service" {
-  source = "https://ch-ebu-mcma-module-repository.s3.eu-central-1.amazonaws.com/ebu/mediainfo-ame-service/aws/0.0.1/module.zip"
+  source = "https://ch-ebu-mcma-module-repository.s3.eu-central-1.amazonaws.com/ebu/mediainfo-ame-service/aws/0.0.2/module.zip"
 
   prefix = "${var.global_prefix}-mediainfo-ame-service"
 
   stage_name = var.environment_type
 
-  aws_account_id = data.aws_caller_identity.current.account_id
-  aws_region     = var.aws_region
+  aws_region = var.aws_region
 
   service_registry = module.service_registry
 
@@ -89,15 +88,13 @@ module "mediainfo_ame_service" {
 module "stepfunctions_workflow_service" {
   source = "../aws/build/staging"
 
-  prefix = "${var.global_prefix}-stepfunctions-workflow-service"
+  prefix = "${var.global_prefix}-sf-workflow-service"
 
   stage_name = var.environment_type
 
-  aws_account_id = data.aws_caller_identity.current.account_id
-  aws_region     = var.aws_region
+  aws_region = var.aws_region
 
   service_registry = module.service_registry
-  job_processor = module.job_processor
 
   log_group = aws_cloudwatch_log_group.main
 
@@ -127,11 +124,21 @@ module "test_workflow_1" {
 resource "aws_s3_bucket" "upload" {
   bucket = "${var.global_prefix}-upload-${var.aws_region}"
 
-  force_destroy = true
+  lifecycle {
+    ignore_changes = [
+      lifecycle_rule
+    ]
+  }
 
-  lifecycle_rule {
-    enabled = true
-    id      = "Delete after 1 day"
+  force_destroy = true
+}
+
+resource "aws_s3_bucket_lifecycle_configuration" "upload" {
+  bucket = aws_s3_bucket.upload.id
+
+  rule {
+    id     = "Delete after 1 day"
+    status = "Enabled"
     expiration {
       days = 1
     }

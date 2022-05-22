@@ -1,14 +1,17 @@
 {
-    "name": "worker",
+    "name": "workflow-service-eventbridge-handler",
     "version": "0.0.0",
+    "description": "Periodic Execution Checker for Workflow Service",
     "private": true,
     "license": "Apache-2.0",
     "dependencies": {
+        "@mcma/api": "0.14.4",
         "@mcma/aws-client": "0.14.4",
         "@mcma/aws-dynamodb": "0.14.4",
+        "@mcma/aws-lambda-worker-invoker": "0.14.4",
         "@mcma/aws-logger": "0.14.4",
-        "@mcma/client": "0.14.4",
         "@mcma/core": "0.14.4",
+        "@mcma/client": "0.14.4",
         "@mcma/data": "0.14.4",
         "@mcma/worker": "0.14.4",
         "@mcma/worker-invoker": "0.14.4",
@@ -17,7 +20,7 @@
         "uuid": "^8.3.2"
     },
     "devDependencies": {
-        "@types/aws-lambda": "^8.10.76",
+        "@types/aws-lambda": "^8.10.51",
         "@types/node": "^14.18.18",
         "@types/uuid": "^8.3.4"
     }

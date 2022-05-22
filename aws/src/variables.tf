@@ -1,11 +1,3 @@
-##################################
-# Enable optional variable attributes
-##################################
-
-terraform {
-  experiments = [module_variable_optional_attrs]
-}
-
 #########################
 # Environment Variables
 #########################
@@ -43,22 +35,22 @@ variable "dead_letter_config_target" {
 #########################
 
 variable "workflows" {
-  type        = list(object({
-    name                      = string
-    input_parameters          = optional(list(object({
+  type = list(object({
+    name             = string
+    input_parameters = list(object({
       parameter_name = string
       parameter_type = string
-    })))
-    optional_input_parameters = optional(list(object({
+    }))
+    optional_input_parameters = list(object({
       parameter_name = string
       parameter_type = string
-    })))
-    output_parameters         = optional(list(object({
+    }))
+    output_parameters = list(object({
       parameter_name = string
       parameter_type = string
-    })))
-    state_machine_arn         = string
-    activity_arns             = optional(list(string))
+    }))
+    state_machine_arn = string
+    activity_arns     = list(string)
   }))
   description = "list of workflows that the step function service can execute"
 }
@@ -71,11 +63,6 @@ locals {
 # AWS Variables
 #########################
 
-variable "aws_account_id" {
-  type        = string
-  description = "Account ID to which this module is deployed"
-}
-
 variable "aws_region" {
   type        = string
   description = "AWS Region to which this module is deployed"
@@ -87,36 +74,21 @@ variable "iam_role_path" {
   default     = "/"
 }
 
-variable "iam_policy_path" {
-  type        = string
-  description = "Path for creation of access policy"
-  default     = "/"
-}
-
 #########################
 # Dependencies
 #########################
 
 variable "service_registry" {
   type = object({
-    auth_type              = string,
-    services_url           = string,
-    aws_apigatewayv2_stage = object({
-      service_api = object({
-        execution_arn = string
-      })
-    })
+    auth_type    = string
+    services_url = string
   })
 }
 
-variable "job_processor" {
-  type = object({
-    aws_apigatewayv2_stage = object({
-      service_api = object({
-        execution_arn = string
-      })
-    })
-  })
+variable "execute_api_arns" {
+  type        = list(string)
+  description = "Optional ist of api gateway execution arns that will allow you to control which APIs the lambdas are allowed to invoke"
+  default     = ["arn:aws:execute-api:*:*:*"]
 }
 
 #########################
@@ -124,18 +96,12 @@ variable "job_processor" {
 #########################
 
 variable "log_group" {
-  type        = object({
+  type = object({
     id   = string
     arn  = string
     name = string
   })
   description = "Log group used by MCMA Event tracking"
-}
-
-variable "api_gateway_logging_enabled" {
-  type        = bool
-  description = "Enable API Gateway logging"
-  default     = false
 }
 
 variable "api_gateway_metrics_enabled" {

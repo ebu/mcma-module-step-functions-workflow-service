@@ -1,7 +1,7 @@
 include "aws",
         "aws:api-handler",
+        "aws:eventbridge-handler",
         "aws:lib-common",
-        "aws:periodic-execution-checker",
         "aws:worker",
         "deployment",
         "scripts",

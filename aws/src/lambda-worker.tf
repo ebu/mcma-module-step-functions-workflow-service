@@ -49,10 +49,10 @@ resource "aws_iam_role_policy" "worker" {
           "logs:PutLogEvents",
         ],
         Resource = concat([
-          "arn:aws:logs:${var.aws_region}:${var.aws_account_id}:log-group:${var.log_group.name}:*",
-          "arn:aws:logs:${var.aws_region}:${var.aws_account_id}:log-group:/aws/lambda/${local.lambda_name_worker}:*",
+          "arn:aws:logs:${var.aws_region}:${data.aws_caller_identity.current.account_id}:log-group:${var.log_group.name}:*",
+          "arn:aws:logs:${var.aws_region}:${data.aws_caller_identity.current.account_id}:log-group:/aws/lambda/${local.lambda_name_worker}:*",
         ], var.enhanced_monitoring_enabled ? [
-          "arn:aws:logs:${var.aws_region}:${var.aws_account_id}:log-group:/aws/lambda-insights:*"
+          "arn:aws:logs:${var.aws_region}:${data.aws_caller_identity.current.account_id}:log-group:/aws/lambda-insights:*"
         ] : [])
       },
       {
@@ -87,19 +87,14 @@ resource "aws_iam_role_policy" "worker" {
         ]
       },
       {
-        Sid      = "AllowInvokingApiGateway"
-        Effect   = "Allow",
-        Action   = "execute-api:Invoke",
-        Resource = [
-          "${var.service_registry.aws_apigatewayv2_stage.service_api.execution_arn}/*/*",
-          "${var.job_processor.aws_apigatewayv2_stage.service_api.execution_arn}/*/*",
-        ]
-      },
-      {
         Sid      = "AllowEnablingDisabling"
         Effect   = "Allow",
-        Action   = ["events:EnableRule", "events:DisableRule"],
-        Resource = aws_cloudwatch_event_rule.periodic_execution_checker.arn
+        Action   = [
+          "events:DescribeRule",
+          "events:EnableRule",
+          "events:DisableRule",
+        ],
+        Resource = aws_cloudwatch_event_rule.eventbridge_handler_periodic.arn
       },
     ],
     length(var.workflows) > 0 ?
@@ -161,7 +156,16 @@ resource "aws_iam_role_policy" "worker" {
         Action : "sqs:SendMessage",
         Resource : var.dead_letter_config_target
       }
-    ] : [])
+    ] : [],
+      length(var.execute_api_arns) > 0 ?
+      [
+        {
+          Sid      = "AllowInvokingApiGateway"
+          Effect   = "Allow"
+          Action   = "execute-api:Invoke"
+          Resource = var.execute_api_arns
+        },
+      ] : [])
   })
 }
 
@@ -188,7 +192,7 @@ resource "aws_lambda_function" "worker" {
       PublicUrl           = local.service_url
       ServicesUrl         = var.service_registry.services_url
       ServicesAuthType    = var.service_registry.auth_type
-      CloudWatchEventRule = aws_cloudwatch_event_rule.periodic_execution_checker.name,
+      CloudWatchEventRule = aws_cloudwatch_event_rule.eventbridge_handler_periodic.name,
     }
   }
 

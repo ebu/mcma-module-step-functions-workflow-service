@@ -1,8 +1,8 @@
 output "service_definition" {
   value = {
-    name         = var.name
-    auth_type    = local.service_auth_type
-    resources    = [
+    name      = var.name
+    auth_type = local.service_auth_type
+    resources = [
       {
         resource_type = "JobAssignment"
         http_endpoint = "${local.service_url}/job-assignments"
@@ -22,17 +22,17 @@ output "service_definition" {
 
 output "aws_iam_role" {
   value = {
-    api_handler                = aws_iam_role.api_handler
-    periodic_execution_checker = aws_iam_role.periodic_execution_checker
-    worker                     = aws_iam_role.worker
+    api_handler         = aws_iam_role.api_handler
+    eventbridge_handler = aws_iam_role.eventbridge_handler
+    worker              = aws_iam_role.worker
   }
 }
 
 output "aws_iam_role_policy" {
   value = {
-    api_handler                = aws_iam_role_policy.api_handler
-    periodic_execution_checker = aws_iam_role_policy.periodic_execution_checker
-    worker                     = aws_iam_role_policy.worker
+    api_handler         = aws_iam_role_policy.api_handler
+    eventbridge_handler = aws_iam_role_policy.eventbridge_handler
+    worker              = aws_iam_role_policy.worker
   }
 }
 

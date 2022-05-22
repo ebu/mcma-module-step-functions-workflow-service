@@ -7,7 +7,7 @@ import * as AWS from "aws-sdk";
 
 import { AuthProvider, ResourceManager } from "@mcma/client";
 import { Job, JobParameterBag, JobProfile, JobStatus, McmaException, McmaTracker, Utils, WorkflowJob } from "@mcma/core";
-import { AwsS3FileLocator } from "@mcma/aws-s3";
+import { S3Locator } from "@mcma/aws-s3";
 import { awsV4Auth } from "@mcma/aws-client";
 
 const TERRAFORM_OUTPUT = "../../deployment/terraform.output.json";
@@ -49,7 +49,7 @@ async function uploadFileToBucket(bucket: string, filename: string) {
         await s3.upload(uploadParams).promise();
     }
 
-    return new AwsS3FileLocator({
+    return new S3Locator({
         bucket: uploadParams.Bucket,
         key: uploadParams.Key,
         url: s3.getSignedUrl("getObject", {
@@ -76,7 +76,7 @@ async function waitForJobCompletion(job: Job, resourceManager: ResourceManager):
     return job;
 }
 
-async function startJob(resourceManager: ResourceManager, inputFile: AwsS3FileLocator) {
+async function startJob(resourceManager: ResourceManager, inputFile: S3Locator) {
     let [jobProfile] = await resourceManager.query(JobProfile, { name: "TestWorkflow" });
 
     // if not found bail out
@@ -98,7 +98,7 @@ async function startJob(resourceManager: ResourceManager, inputFile: AwsS3FileLo
     return resourceManager.create(distributionJob);
 }
 
-async function testJob(resourceManager: ResourceManager, inputFile: AwsS3FileLocator) {
+async function testJob(resourceManager: ResourceManager, inputFile: S3Locator) {
     let job;
 
     console.log("Creating job");

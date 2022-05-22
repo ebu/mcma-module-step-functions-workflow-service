@@ -5,7 +5,7 @@ import { ProcessJobAssignmentHelper, ProviderCollection, WorkerRequest } from "@
 import { DocumentDatabaseTable, getTableName, Query } from "@mcma/data";
 import { CloudWatchEvents, StepFunctions } from "aws-sdk";
 
-import { Workflow, WorkflowExecution } from "@local/common";
+import { Workflow, WorkflowExecution, enableEventRule } from "@local/common";
 
 const { CloudWatchEventRule } = process.env;
 
@@ -128,7 +128,7 @@ async function executeWorkflow(providers: ProviderCollection, jobAssignmentHelpe
         }
     });
 
-    await context.cloudWatchEvents.enableRule({ Name: CloudWatchEventRule }).promise();
+    await enableEventRule(CloudWatchEventRule, jobAssignmentHelper.dbTable, context.cloudWatchEvents, context.awsRequestId, logger);
 
     jobAssignmentHelper.jobOutput.set("executionArn", data.executionArn);
     await jobAssignmentHelper.updateJobAssignmentOutput();

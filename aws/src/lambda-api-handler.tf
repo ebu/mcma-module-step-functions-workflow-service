@@ -49,10 +49,10 @@ resource "aws_iam_role_policy" "api_handler" {
           "logs:PutLogEvents",
         ],
         Resource = concat([
-          "arn:aws:logs:${var.aws_region}:${var.aws_account_id}:log-group:${var.log_group.name}:*",
-          "arn:aws:logs:${var.aws_region}:${var.aws_account_id}:log-group:/aws/lambda/${local.lambda_name_api_handler}:*",
+          "arn:aws:logs:${var.aws_region}:${data.aws_caller_identity.current.account_id}:log-group:${var.log_group.name}:*",
+          "arn:aws:logs:${var.aws_region}:${data.aws_caller_identity.current.account_id}:log-group:/aws/lambda/${local.lambda_name_api_handler}:*",
         ], var.enhanced_monitoring_enabled ? [
-          "arn:aws:logs:${var.aws_region}:${var.aws_account_id}:log-group:/aws/lambda-insights:*"
+          "arn:aws:logs:${var.aws_region}:${data.aws_caller_identity.current.account_id}:log-group:/aws/lambda-insights:*"
         ] : [])
       },
       {
@@ -90,7 +90,7 @@ resource "aws_iam_role_policy" "api_handler" {
         Sid      = "AllowInvokingWorkerLambda",
         Effect   = "Allow",
         Action   = "lambda:InvokeFunction",
-        Resource = "arn:aws:lambda:${var.aws_region}:${var.aws_account_id}:function:${local.lambda_name_worker}"
+        Resource = "arn:aws:lambda:${var.aws_region}:${data.aws_caller_identity.current.account_id}:function:${local.lambda_name_worker}"
       }
     ],
     var.xray_tracing_enabled ?
