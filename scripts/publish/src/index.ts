@@ -48,7 +48,9 @@ async function main() {
 
         await axios.put(publishUrl, fs.readFileSync("../../aws/build/dist/module.zip"), {
             transformRequest: [(data, headers) => {
-                delete headers.put["Content-Type"];
+                if (headers) {
+                    delete (headers.put as any)["Content-Type"];
+                }
                 return data;
             }]
         });
