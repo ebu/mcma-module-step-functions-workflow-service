@@ -87,9 +87,9 @@ resource "aws_iam_role_policy" "eventbridge_handler" {
         ]
       },
       {
-        Sid      = "AllowEnablingDisabling"
-        Effect   = "Allow",
-        Action   = [
+        Sid    = "AllowEnablingDisabling"
+        Effect = "Allow",
+        Action = [
           "events:DescribeRule",
           "events:EnableRule",
           "events:DisableRule",
@@ -192,7 +192,7 @@ resource "aws_lambda_function" "eventbridge_handler" {
       PublicUrl           = local.service_url
       ServicesUrl         = var.service_registry.services_url
       ServicesAuthType    = var.service_registry.auth_type
-      CloudWatchEventRule = aws_cloudwatch_event_rule.eventbridge_handler_stepfunctions.name,
+      CloudWatchEventRule = aws_cloudwatch_event_rule.eventbridge_handler_periodic.name,
     }
   }
 
@@ -212,7 +212,7 @@ resource "aws_lambda_function" "eventbridge_handler" {
 }
 
 resource "aws_cloudwatch_event_rule" "eventbridge_handler_periodic" {
-  name                = format("%.64s", "${var.prefix}-eventbridge-handler")
+  name                = format("%.64s", "${var.prefix}-periodic")
   schedule_expression = "cron(0/1 * * * ? *)"
   is_enabled          = false
 
@@ -237,7 +237,7 @@ resource "aws_cloudwatch_event_target" "eventbridge_handler_periodic" {
 }
 
 resource "aws_cloudwatch_event_rule" "eventbridge_handler_stepfunctions" {
-  name          = var.prefix
+  name          = format("%.64s", "${var.prefix}-events")
   event_pattern = jsonencode({
     source      = ["aws.states"]
     detail-type = ["Step Functions Execution Status Change"]

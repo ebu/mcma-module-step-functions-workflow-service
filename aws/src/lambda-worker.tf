@@ -41,9 +41,9 @@ resource "aws_iam_role_policy" "worker" {
         Resource = "*"
       },
       {
-        Sid      = "WriteToCloudWatchLogs"
-        Effect   = "Allow"
-        Action   = [
+        Sid    = "WriteToCloudWatchLogs"
+        Effect = "Allow"
+        Action = [
           "logs:CreateLogGroup",
           "logs:CreateLogStream",
           "logs:PutLogEvents",
@@ -56,9 +56,9 @@ resource "aws_iam_role_policy" "worker" {
         ] : [])
       },
       {
-        Sid      = "ListAndDescribeDynamoDBTables",
-        Effect   = "Allow",
-        Action   = [
+        Sid    = "ListAndDescribeDynamoDBTables",
+        Effect = "Allow",
+        Action = [
           "dynamodb:List*",
           "dynamodb:DescribeReservedCapacity*",
           "dynamodb:DescribeLimits",
@@ -67,9 +67,9 @@ resource "aws_iam_role_policy" "worker" {
         Resource = "*"
       },
       {
-        Sid      = "SpecificTable",
-        Effect   = "Allow",
-        Action   = [
+        Sid    = "SpecificTable",
+        Effect = "Allow",
+        Action = [
           "dynamodb:BatchGet*",
           "dynamodb:DescribeStream",
           "dynamodb:DescribeTable",
@@ -87,9 +87,9 @@ resource "aws_iam_role_policy" "worker" {
         ]
       },
       {
-        Sid      = "AllowEnablingDisabling"
-        Effect   = "Allow",
-        Action   = [
+        Sid    = "AllowEnablingDisabling"
+        Effect = "Allow",
+        Action = [
           "events:DescribeRule",
           "events:EnableRule",
           "events:DisableRule",
@@ -97,66 +97,66 @@ resource "aws_iam_role_policy" "worker" {
         Resource = aws_cloudwatch_event_rule.eventbridge_handler_periodic.arn
       },
     ],
-    length(var.workflows) > 0 ?
-    [
-      {
-        Sid      = "AllowStepFunctions"
-        Effect   = "Allow"
-        Action   = [
-          "states:DescribeStateMachine",
-          "states:StartExecution",
-          "states:ListExecutions"
-        ]
-        Resource = [for w in var.workflows : w.state_machine_arn]
-      },
-      {
-        Sid      = "AllowStepFunctionsExecutions"
-        Effect   = "Allow"
-        Action   = [
-          "states:DescribeExecution",
-          "states:DescribeStateMachineForExecution",
-          "states:GetExecutionHistory",
-          "states:StopExecution",
-        ]
-        Resource = [for w in var.workflows : replace("${w.state_machine_arn}:*", "stateMachine", "execution")]
-      },
-    ] : [],
-    length(local.activity_arns) > 0 ?
-    [
-      {
-        Sid      = "AllowManagingActivities"
-        Effect   = "Allow"
-        Action   = [
-          "states:DescribeActivity",
-          "states:SendTaskSuccess",
-          "states:SendTaskFailure",
-        ]
-        Resource = local.activity_arns
-      }
-    ] : [],
-    var.xray_tracing_enabled ?
-    [
-      {
-        Sid      = "AllowLambdaWritingToXRay"
-        Effect   = "Allow",
-        Action   = [
-          "xray:PutTraceSegments",
-          "xray:PutTelemetryRecords",
-          "xray:GetSamplingRules",
-          "xray:GetSamplingTargets",
-          "xray:GetSamplingStatisticSummaries",
-        ],
-        Resource = "*"
-      }
-    ] : [],
-    var.dead_letter_config_target != null ?
-    [
-      {
-        Effect : "Allow",
-        Action : "sqs:SendMessage",
-        Resource : var.dead_letter_config_target
-      }
-    ] : [],
+      length(var.workflows) > 0 ?
+      [
+        {
+          Sid    = "AllowStepFunctions"
+          Effect = "Allow"
+          Action = [
+            "states:DescribeStateMachine",
+            "states:StartExecution",
+            "states:ListExecutions"
+          ]
+          Resource = [for w in var.workflows : w.state_machine_arn]
+        },
+        {
+          Sid    = "AllowStepFunctionsExecutions"
+          Effect = "Allow"
+          Action = [
+            "states:DescribeExecution",
+            "states:DescribeStateMachineForExecution",
+            "states:GetExecutionHistory",
+            "states:StopExecution",
+          ]
+          Resource = [for w in var.workflows : replace("${w.state_machine_arn}:*", "stateMachine", "execution")]
+        },
+      ] : [],
+      length(local.activity_arns) > 0 ?
+      [
+        {
+          Sid    = "AllowManagingActivities"
+          Effect = "Allow"
+          Action = [
+            "states:DescribeActivity",
+            "states:SendTaskSuccess",
+            "states:SendTaskFailure",
+          ]
+          Resource = local.activity_arns
+        }
+      ] : [],
+      var.xray_tracing_enabled ?
+      [
+        {
+          Sid    = "AllowLambdaWritingToXRay"
+          Effect = "Allow",
+          Action = [
+            "xray:PutTraceSegments",
+            "xray:PutTelemetryRecords",
+            "xray:GetSamplingRules",
+            "xray:GetSamplingTargets",
+            "xray:GetSamplingStatisticSummaries",
+          ],
+          Resource = "*"
+        }
+      ] : [],
+      var.dead_letter_config_target != null ?
+      [
+        {
+          Effect : "Allow",
+          Action : "sqs:SendMessage",
+          Resource : var.dead_letter_config_target
+        }
+      ] : [],
       length(var.execute_api_arns) > 0 ?
       [
         {

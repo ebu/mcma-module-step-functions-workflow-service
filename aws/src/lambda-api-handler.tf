@@ -41,9 +41,9 @@ resource "aws_iam_role_policy" "api_handler" {
         Resource = "*"
       },
       {
-        Sid      = "WriteToCloudWatchLogs"
-        Effect   = "Allow"
-        Action   = [
+        Sid    = "WriteToCloudWatchLogs"
+        Effect = "Allow"
+        Action = [
           "logs:CreateLogGroup",
           "logs:CreateLogStream",
           "logs:PutLogEvents",
@@ -56,9 +56,9 @@ resource "aws_iam_role_policy" "api_handler" {
         ] : [])
       },
       {
-        Sid      = "ListAndDescribeDynamoDBTables",
-        Effect   = "Allow",
-        Action   = [
+        Sid    = "ListAndDescribeDynamoDBTables",
+        Effect = "Allow",
+        Action = [
           "dynamodb:List*",
           "dynamodb:DescribeReservedCapacity*",
           "dynamodb:DescribeLimits",
@@ -67,9 +67,9 @@ resource "aws_iam_role_policy" "api_handler" {
         Resource = "*"
       },
       {
-        Sid      = "SpecificTable",
-        Effect   = "Allow",
-        Action   = [
+        Sid    = "SpecificTable",
+        Effect = "Allow",
+        Action = [
           "dynamodb:BatchGet*",
           "dynamodb:DescribeStream",
           "dynamodb:DescribeTable",
@@ -93,21 +93,21 @@ resource "aws_iam_role_policy" "api_handler" {
         Resource = "arn:aws:lambda:${var.aws_region}:${data.aws_caller_identity.current.account_id}:function:${local.lambda_name_worker}"
       }
     ],
-    var.xray_tracing_enabled ?
-    [
-      {
-        Sid      = "AllowLambdaWritingToXRay"
-        Effect   = "Allow",
-        Action   = [
-          "xray:PutTraceSegments",
-          "xray:PutTelemetryRecords",
-          "xray:GetSamplingRules",
-          "xray:GetSamplingTargets",
-          "xray:GetSamplingStatisticSummaries",
-        ],
-        Resource = "*"
-      }
-    ] : [])
+      var.xray_tracing_enabled ?
+      [
+        {
+          Sid    = "AllowLambdaWritingToXRay"
+          Effect = "Allow",
+          Action = [
+            "xray:PutTraceSegments",
+            "xray:PutTelemetryRecords",
+            "xray:GetSamplingRules",
+            "xray:GetSamplingTargets",
+            "xray:GetSamplingStatisticSummaries",
+          ],
+          Resource = "*"
+        }
+      ] : [])
   })
 }
 

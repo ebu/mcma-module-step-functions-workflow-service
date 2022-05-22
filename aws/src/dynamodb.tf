@@ -22,11 +22,11 @@ resource "aws_dynamodb_table" "service_table" {
 }
 
 resource "random_uuid" "workflows" {
-  for_each = {for wf in var.workflows: wf.name => wf}
+  for_each = {for wf in var.workflows : wf.name => wf}
 }
 
 resource "aws_dynamodb_table_item" "workflows" {
-  for_each = {for wf in var.workflows: wf.name => wf}
+  for_each = {for wf in var.workflows : wf.name => wf}
 
   table_name = aws_dynamodb_table.service_table.name
   hash_key   = aws_dynamodb_table.service_table.hash_key
@@ -39,15 +39,15 @@ resource "aws_dynamodb_table_item" "workflows" {
     resource_skey = {
       S = random_uuid.workflows[each.key].result
     }
-    resource      = {
+    resource = {
       M = {
-        "@type"         = {
+        "@type" = {
           "S" = "StepFunctionsWorkflow"
         }
-        id              = {
+        id = {
           "S" = "${local.service_url}/workflows/${random_uuid.workflows[each.key].result}"
         }
-        name            = {
+        name = {
           "S" = each.key
         }
         stateMachineArn = {
