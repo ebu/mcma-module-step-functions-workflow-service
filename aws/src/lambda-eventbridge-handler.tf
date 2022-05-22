@@ -94,7 +94,7 @@ resource "aws_iam_role_policy" "eventbridge_handler" {
           "events:EnableRule",
           "events:DisableRule",
         ],
-        Resource = aws_cloudwatch_event_rule.eventbridge_handler_stepfunctions.arn
+        Resource = aws_cloudwatch_event_rule.eventbridge_handler_periodic.arn
       },
     ],
       length(var.workflows) > 0 ?
