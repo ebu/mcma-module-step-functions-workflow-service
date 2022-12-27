@@ -11,16 +11,16 @@ async function enableDisableRule(doEnable: boolean, ruleName: string, table: Doc
 
     await mutex.lock();
     try {
-        const rule = await cloudWatchEvents.describeRule({ Name: ruleName }).promise();
+        let rule = await cloudWatchEvents.describeRule({ Name: ruleName }).promise();
+        if (rule.State !== "DISABLED") {
+            await cloudWatchEvents.disableRule({ Name: ruleName }).promise();
+            await Utils.sleep(2500);
+            rule = await cloudWatchEvents.describeRule({ Name: ruleName }).promise();
+        }
         if (doEnable) {
             if (rule.State !== "ENABLED") {
                 await cloudWatchEvents.enableRule({ Name: ruleName }).promise();
-                await Utils.sleep(2000);
-            }
-        } else {
-            if (rule.State !== "DISABLED") {
-                await cloudWatchEvents.disableRule({ Name: ruleName }).promise();
-                await Utils.sleep(2000);
+                await Utils.sleep(2500);
             }
         }
     } finally {
