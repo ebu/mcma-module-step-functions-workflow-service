@@ -24,6 +24,8 @@ resource "aws_iam_role" "eventbridge_handler" {
     ]
   })
 
+  permissions_boundary = var.iam_permissions_boundary
+
   tags = var.tags
 }
 

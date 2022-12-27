@@ -74,6 +74,12 @@ variable "iam_role_path" {
   default     = "/"
 }
 
+variable "iam_permissions_boundary" {
+  type        = string
+  description = "IAM permissions boundary"
+  default     = null
+}
+
 #########################
 # Dependencies
 #########################

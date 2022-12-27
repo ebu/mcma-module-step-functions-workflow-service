@@ -45,12 +45,17 @@ variable "iam_policy_path" {
   default     = "/"
 }
 
+variable "iam_permissions_boundary" {
+  type        = string
+  description = "IAM permissions boundary"
+  default     = null
+}
 #########################
 # Logging
 #########################
 
 variable "log_group" {
-  type        = object({
+  type = object({
     id   = string
     arn  = string
     name = string

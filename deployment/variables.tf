@@ -13,3 +13,4 @@ variable "global_prefix" {}
 
 variable "aws_profile" {}
 variable "aws_region" {}
+variable "aws_iam_permissions_boundary" {}

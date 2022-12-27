@@ -5,6 +5,9 @@ def requiredVersionTsc = "^4.3.5"
 if (!hasProperty("moduleRepository")) {
     ext.moduleRepository = ""
 }
+if (!hasProperty("awsIamPermissionsBoundary")) {
+    ext.awsIamPermissionsBoundary = ""
+}
 
 allprojects {
     ext {

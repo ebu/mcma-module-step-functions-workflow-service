@@ -24,6 +24,8 @@ resource "aws_iam_role" "worker" {
     ]
   })
 
+  permissions_boundary = var.iam_permissions_boundary
+
   tags = var.tags
 }
 

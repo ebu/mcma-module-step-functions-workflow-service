@@ -19,6 +19,8 @@ resource "aws_iam_role" "lambda_execution" {
     ]
   })
 
+  permissions_boundary = var.iam_permissions_boundary
+
   tags = var.tags
 }
 
@@ -87,6 +89,8 @@ resource "aws_iam_role" "stepfunctions_execution" {
       }
     ]
   })
+
+  permissions_boundary = var.iam_permissions_boundary
 
   tags = var.tags
 }

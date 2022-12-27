@@ -92,7 +92,8 @@ module "stepfunctions_workflow_service" {
 
   stage_name = var.environment_type
 
-  aws_region = var.aws_region
+  aws_region               = var.aws_region
+  iam_permissions_boundary = var.aws_iam_permissions_boundary
 
   service_registry = module.service_registry
 
@@ -110,8 +111,9 @@ module "test_workflow_1" {
 
   prefix = "${var.global_prefix}-test-workflow-1"
 
-  aws_account_id = data.aws_caller_identity.current.account_id
-  aws_region     = var.aws_region
+  aws_account_id           = data.aws_caller_identity.current.account_id
+  aws_region               = var.aws_region
+  iam_permissions_boundary = var.aws_iam_permissions_boundary
 
   service_registry = module.service_registry
 

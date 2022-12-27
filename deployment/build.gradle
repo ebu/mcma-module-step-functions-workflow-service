@@ -5,18 +5,20 @@ task generateTerraformTFVars {
     inputs.property("environment_type", environmentType)
     inputs.property("aws_profile", awsProfile)
     inputs.property("aws_region", awsRegion)
+    inputs.property("aws_iam_permissions_boundary", awsIamPermissionsBoundary)
 
     def propertyFile = file("${projectDir}/terraform.tfvars.json")
     outputs.file(propertyFile)
 
     doLast {
         def data = [
-                environment_name: environmentName,
-                environment_type: environmentType,
-                global_prefix   : "${environmentName}.${environmentType}".replace(".", "-"),
+                environment_name            : environmentName,
+                environment_type            : environmentType,
+                global_prefix               : "${environmentName}.${environmentType}".replace(".", "-"),
 
-                aws_profile     : awsProfile,
-                aws_region      : awsRegion,
+                aws_profile                 : awsProfile,
+                aws_region                  : awsRegion,
+                aws_iam_permissions_boundary: awsIamPermissionsBoundary,
         ]
 
         def json = JsonOutput.toJson(data)
