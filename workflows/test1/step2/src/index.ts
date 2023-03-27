@@ -1,18 +1,18 @@
 import { Context } from "aws-lambda";
 
 import { AmeJob, JobParameterBag, JobProfile, McmaException, McmaTracker, NotificationEndpoint, NotificationEndpointProperties } from "@mcma/core";
-import { AwsCloudWatchLoggerProvider } from "@mcma/aws-logger";
+import { AwsCloudWatchLoggerProvider, getLogGroupName } from "@mcma/aws-logger";
 import { S3Locator } from "@mcma/aws-s3";
 import * as AWS from "aws-sdk";
 import { awsV4Auth } from "@mcma/aws-client";
 import { AuthProvider, getResourceManagerConfig, ResourceManager } from "@mcma/client";
 
-const loggerProvider = new AwsCloudWatchLoggerProvider("test1-workflow-step2", process.env.LogGroupName);
+const loggerProvider = new AwsCloudWatchLoggerProvider("test1-workflow-step2", getLogGroupName());
 const resourceManager = new ResourceManager(getResourceManagerConfig(), new AuthProvider().add(awsV4Auth(AWS)));
 
 const stepFunctions = new AWS.StepFunctions();
 
-const { ActivityArn } = process.env;
+const { ACTIVITY_ARN } = process.env;
 
 type InputEvent = {
     input?: {
@@ -29,7 +29,7 @@ export async function handler(event: InputEvent, context: Context) {
         logger.debug(event);
         logger.debug(context);
 
-        const data = await stepFunctions.getActivityTask({ activityArn: ActivityArn }).promise();
+        const data = await stepFunctions.getActivityTask({ activityArn: ACTIVITY_ARN }).promise();
 
         const taskToken = data.taskToken;
         if (!taskToken) {
@@ -63,7 +63,7 @@ export async function handler(event: InputEvent, context: Context) {
         return ameJob.id;
     } catch (error) {
         logger.error("Failed to create job");
-        logger.error(error.toString());
+        logger.error(error);
         throw new McmaException("Failed to create job", error);
     } finally {
         logger.functionEnd(context.awsRequestId);

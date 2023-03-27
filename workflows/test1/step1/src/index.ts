@@ -1,11 +1,11 @@
 import { Context } from "aws-lambda";
 
 import { McmaException, McmaTracker } from "@mcma/core";
-import { AwsCloudWatchLoggerProvider } from "@mcma/aws-logger";
+import { AwsCloudWatchLoggerProvider, getLogGroupName } from "@mcma/aws-logger";
 import { S3Locator } from "@mcma/aws-s3";
 import { default as axios } from "axios";
 
-const loggerProvider = new AwsCloudWatchLoggerProvider("test1-workflow-step1", process.env.LogGroupName);
+const loggerProvider = new AwsCloudWatchLoggerProvider("test1-workflow-step1", getLogGroupName());
 
 type InputEvent = {
     input?: {
@@ -41,7 +41,7 @@ export async function handler(event: InputEvent, context: Context) {
         }
     } catch (error) {
         logger.error("Failed to validate workflow input");
-        logger.error(error.toString());
+        logger.error(error);
         throw new McmaException("Failed to validate workflow input", error);
     } finally {
         logger.functionEnd(context.awsRequestId);

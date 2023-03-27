@@ -27,13 +27,12 @@ export async function processCancel(providers: ProviderCollection, workerRequest
         }
 
         await context.stepFunctions.stopExecution({
-            executionArn: jobAssignmentHelper.jobOutput.get<string>("executionArn")
+            executionArn: jobAssignmentHelper.jobOutput.executionArn
         }).promise();
 
         await jobAssignmentHelper.cancel();
     } catch (error) {
-        logger.error(error.message);
-        logger.error(error.toString());
+        logger.error(error);
         try {
             await jobAssignmentHelper.fail(new ProblemDetail({
                 type: "uri://mcma.ebu.ch/rfc7807/step-functions-workflow-service/generic-error",

@@ -7,10 +7,14 @@ provider "aws" {
   region  = var.aws_region
 }
 
-#################################
-# Retrieving AWS account details
-#################################
-data "aws_caller_identity" "current" {}
+provider "mcma" {
+  service_registry_url = module.service_registry.service_url
+
+  aws4_auth {
+    profile = var.aws_profile
+    region  = var.aws_region
+  }
+}
 
 ############################################
 # Cloud watch log group for central logging
@@ -25,22 +29,19 @@ resource "aws_cloudwatch_log_group" "main" {
 #########################
 
 module "service_registry" {
-  source = "https://ch-ebu-mcma-module-repository.s3.eu-central-1.amazonaws.com/ebu/service-registry/aws/0.13.27/module.zip"
+  source = "https://ch-ebu-mcma-module-repository.s3.eu-central-1.amazonaws.com/ebu/service-registry/aws/0.15.0/module.zip"
 
   prefix = "${var.global_prefix}-service-registry"
 
   stage_name = var.environment_type
 
-  aws_account_id = data.aws_caller_identity.current.account_id
   aws_region     = var.aws_region
+  aws_profile    = var.aws_profile
 
-  log_group = aws_cloudwatch_log_group.main
-
-  services = [
-    module.job_processor.service_definition,
-    module.mediainfo_ame_service.service_definition,
-    module.stepfunctions_workflow_service.service_definition,
-  ]
+  log_group                   = aws_cloudwatch_log_group.main
+  api_gateway_metrics_enabled = true
+  xray_tracing_enabled        = true
+  enhanced_monitoring_enabled = true
 }
 
 #########################
@@ -48,19 +49,25 @@ module "service_registry" {
 #########################
 
 module "job_processor" {
-  source = "https://ch-ebu-mcma-module-repository.s3.eu-central-1.amazonaws.com/ebu/job-processor/aws/0.13.27/module.zip"
+  source = "https://ch-ebu-mcma-module-repository.s3.eu-central-1.amazonaws.com/ebu/job-processor/aws/0.15.0/module.zip"
 
   prefix = "${var.global_prefix}-job-processor"
 
   stage_name     = var.environment_type
   dashboard_name = var.global_prefix
 
-  aws_account_id = data.aws_caller_identity.current.account_id
   aws_region     = var.aws_region
 
   service_registry = module.service_registry
+  execute_api_arns = [
+    "${module.service_registry.aws_apigatewayv2_stage.service_api.execution_arn}/*/*",
+    "${module.mediainfo_ame_service.aws_apigatewayv2_stage.service_api.execution_arn}/*/*",
+    "${module.stepfunctions_workflow_service.aws_apigatewayv2_stage.service_api.execution_arn}/*/*",
+  ]
 
-  log_group = aws_cloudwatch_log_group.main
+  log_group                   = aws_cloudwatch_log_group.main
+  api_gateway_metrics_enabled = true
+  xray_tracing_enabled        = true
 }
 
 #########################
@@ -68,17 +75,18 @@ module "job_processor" {
 #########################
 
 module "mediainfo_ame_service" {
-  source = "https://ch-ebu-mcma-module-repository.s3.eu-central-1.amazonaws.com/ebu/mediainfo-ame-service/aws/0.0.2/module.zip"
+  source = "https://ch-ebu-mcma-module-repository.s3.eu-central-1.amazonaws.com/ebu/mediainfo-ame-service/aws/0.1.0/module.zip"
 
   prefix = "${var.global_prefix}-mediainfo-ame-service"
 
   stage_name = var.environment_type
-
   aws_region = var.aws_region
 
   service_registry = module.service_registry
 
   log_group = aws_cloudwatch_log_group.main
+  api_gateway_metrics_enabled = true
+  xray_tracing_enabled        = true
 }
 
 ########################################
@@ -91,13 +99,14 @@ module "stepfunctions_workflow_service" {
   prefix = "${var.global_prefix}-sf-workflow-service"
 
   stage_name = var.environment_type
-
   aws_region               = var.aws_region
   iam_permissions_boundary = var.aws_iam_permissions_boundary
 
   service_registry = module.service_registry
 
   log_group = aws_cloudwatch_log_group.main
+  api_gateway_metrics_enabled = true
+  xray_tracing_enabled        = true
 
   workflows = [module.test_workflow_1.workflow_definition]
 }
@@ -111,7 +120,6 @@ module "test_workflow_1" {
 
   prefix = "${var.global_prefix}-test-workflow-1"
 
-  aws_account_id           = data.aws_caller_identity.current.account_id
   aws_region               = var.aws_region
   iam_permissions_boundary = var.aws_iam_permissions_boundary
 

@@ -29,9 +29,9 @@ async function enableDisableRule(doEnable: boolean, ruleName: string, table: Doc
 }
 
 export async function enableEventRule(ruleName: string, table: DocumentDatabaseTable, cloudWatchEvents: CloudWatchEvents, requestId: string, logger: Logger) {
-    return enableDisableRule(true, ruleName, table, cloudWatchEvents, requestId, logger);
+    await enableDisableRule(true, ruleName, table, cloudWatchEvents, requestId, logger);
 }
 
 export async function disableEventRule(ruleName: string, table: DocumentDatabaseTable, cloudWatchEvents: CloudWatchEvents, requestId: string, logger: Logger) {
-    return enableDisableRule(false, ruleName, table, cloudWatchEvents, requestId, logger);
+    await enableDisableRule(false, ruleName, table, cloudWatchEvents, requestId, logger);
 }

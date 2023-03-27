@@ -3,7 +3,7 @@ import * as AWSXRay from "aws-xray-sdk-core";
 import { v4 as uuidv4 } from "uuid";
 
 import { JobProperties, JobStatus, McmaTracker, ProblemDetail, WorkflowJob } from "@mcma/core";
-import { AwsCloudWatchLoggerProvider } from "@mcma/aws-logger";
+import { AwsCloudWatchLoggerProvider, getLogGroupName } from "@mcma/aws-logger";
 import { DynamoDbTableProvider } from "@mcma/aws-dynamodb";
 import { getTableName, Query } from "@mcma/data";
 
@@ -12,13 +12,13 @@ import { ProcessJobAssignmentHelper, WorkerRequest } from "@mcma/worker";
 import { awsV4Auth } from "@mcma/aws-client";
 import { AuthProvider, ResourceManagerProvider } from "@mcma/client";
 
-const { LogGroupName, CloudWatchEventRule } = process.env;
+const { CLOUD_WATCH_EVENT_RULE } = process.env;
 
 const AWS = AWSXRay.captureAWS(require("aws-sdk"));
 
 const authProvider = new AuthProvider().add(awsV4Auth(AWS));
 const cloudWatchEvents = new AWS.CloudWatchEvents();
-const loggerProvider = new AwsCloudWatchLoggerProvider("workflow-service-eventbridge-handler", LogGroupName, new AWS.CloudWatchLogs());
+const loggerProvider = new AwsCloudWatchLoggerProvider("workflow-service-eventbridge-handler", getLogGroupName(), new AWS.CloudWatchLogs());
 const resourceManagerProvider = new ResourceManagerProvider(authProvider);
 const stepFunctions = new AWS.StepFunctions();
 const tableProvider = new DynamoDbTableProvider({}, new AWS.DynamoDB());
@@ -40,7 +40,7 @@ export async function handler(event: ScheduledEvent, context: Context) {
             return;
         }
         try {
-            await disableEventRule(CloudWatchEventRule, table, cloudWatchEvents, context.awsRequestId, logger);
+            await disableEventRule(CLOUD_WATCH_EVENT_RULE, table, cloudWatchEvents, context.awsRequestId, logger);
 
             const queryParameters: Query<WorkflowExecution> = {
                 path: "/workflow-executions",
@@ -126,9 +126,9 @@ export async function handler(event: ScheduledEvent, context: Context) {
                             break;
                         case "SUCCEEDED":
                             await table.delete(workflowExecution.id);
-                            if (workflowOutput?.output !== null && typeof workflowOutput?.output === "object") {
+                            if (workflowOutput.output && typeof workflowOutput.output === "object") {
                                 for (const key of Object.keys(workflowOutput?.output)) {
-                                    jobAssignmentHelper.jobOutput.set(key, workflowOutput[key]);
+                                    jobAssignmentHelper.jobOutput[key] = workflowOutput.output[key];
                                 }
                             }
                             await jobAssignmentHelper.complete();
@@ -206,8 +206,7 @@ export async function handler(event: ScheduledEvent, context: Context) {
                             break;
                     }
                 } catch (error) {
-                    logger.error(error.message);
-                    logger.error(error.toString());
+                    logger.error(error);
                     try {
                         await jobAssignmentHelper.fail(new ProblemDetail({
                             type: "uri://mcma.ebu.ch/rfc7807/step-functions-workflow-service/generic-error",
@@ -225,13 +224,13 @@ export async function handler(event: ScheduledEvent, context: Context) {
 
             if (activeExecutions) {
                 logger.info(`There are ${activeExecutions} active executions remaining`);
-                await enableEventRule(CloudWatchEventRule, table, cloudWatchEvents, context.awsRequestId, logger);
+                await enableEventRule(CLOUD_WATCH_EVENT_RULE, table, cloudWatchEvents, context.awsRequestId, logger);
             }
         } finally {
             await mutex.unlock();
         }
     } catch (error) {
-        logger.error(error?.toString());
+        logger.error(error);
         throw error;
     } finally {
         logger.functionEnd(context.awsRequestId);

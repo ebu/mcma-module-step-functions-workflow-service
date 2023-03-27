@@ -123,18 +123,19 @@ resource "aws_lambda_function" "api_handler" {
   role             = aws_iam_role.api_handler.arn
   handler          = "index.handler"
   source_code_hash = filebase64sha256("${path.module}/lambdas/api-handler.zip")
-  runtime          = "nodejs14.x"
+  runtime          = "nodejs16.x"
   timeout          = "30"
   memory_size      = "2048"
 
-  layers = var.enhanced_monitoring_enabled ? ["arn:aws:lambda:${var.aws_region}:580247275435:layer:LambdaInsightsExtension:14"] : []
+  layers = var.enhanced_monitoring_enabled && contains(keys(local.lambda_insights_extensions), var.aws_region) ? [
+    local.lambda_insights_extensions[var.aws_region]
+  ] : []
 
   environment {
     variables = {
-      LogGroupName     = var.log_group.name
-      TableName        = aws_dynamodb_table.service_table.name
-      PublicUrl        = local.service_url
-      WorkerFunctionId = aws_lambda_function.worker.function_name
+      MCMA_TABLE_NAME         = aws_dynamodb_table.service_table.name
+      MCMA_PUBLIC_URL         = local.service_url
+      MCMA_WORKER_FUNCTION_ID = aws_lambda_function.worker.function_name
     }
   }
 

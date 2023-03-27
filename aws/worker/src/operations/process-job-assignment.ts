@@ -7,7 +7,7 @@ import { CloudWatchEvents, StepFunctions } from "aws-sdk";
 
 import { Workflow, WorkflowExecution, enableEventRule } from "@local/common";
 
-const { CloudWatchEventRule } = process.env;
+const { CLOUD_WATCH_EVENT_RULE } = process.env;
 
 export async function processJobAssignment(providers: ProviderCollection, workerRequest: WorkerRequest, context: { awsRequestId: string, stepFunctions: StepFunctions, cloudWatchEvents: CloudWatchEvents }) {
     if (!workerRequest) {
@@ -128,8 +128,8 @@ async function executeWorkflow(providers: ProviderCollection, jobAssignmentHelpe
         }
     });
 
-    await enableEventRule(CloudWatchEventRule, jobAssignmentHelper.dbTable, context.cloudWatchEvents, context.awsRequestId, logger);
+    await enableEventRule(CLOUD_WATCH_EVENT_RULE, jobAssignmentHelper.dbTable, context.cloudWatchEvents, context.awsRequestId, logger);
 
-    jobAssignmentHelper.jobOutput.set("executionArn", data.executionArn);
+    jobAssignmentHelper.jobOutput.executionArn = data.executionArn;
     await jobAssignmentHelper.updateJobAssignmentOutput();
 }

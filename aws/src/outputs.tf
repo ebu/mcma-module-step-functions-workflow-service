@@ -1,23 +1,10 @@
-output "service_definition" {
-  value = {
-    name      = var.name
-    auth_type = local.service_auth_type
-    resources = [
-      {
-        resource_type = "JobAssignment"
-        http_endpoint = "${local.service_url}/job-assignments"
-      }
-    ]
-    job_type     = "WorkflowJob"
-    job_profiles = [
-    for workflow in var.workflows : {
-      name                      = workflow.name
-      input_parameters          = workflow.input_parameters
-      optional_input_parameters = workflow.optional_input_parameters
-      output_parameters         = workflow.output_parameters
-    }
-    ]
-  }
+output "auth_type" {
+  value = local.service_auth_type
+}
+
+output "service_url" {
+  depends_on = [ mcma_service.service ]
+  value = local.service_url
 }
 
 output "aws_iam_role" {

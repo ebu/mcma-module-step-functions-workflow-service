@@ -4,17 +4,15 @@ import * as AWSXRay from "aws-xray-sdk-core";
 import { AuthProvider, ResourceManagerProvider } from "@mcma/client";
 import { ProviderCollection, Worker, WorkerRequest, WorkerRequestProperties } from "@mcma/worker";
 import { DynamoDbTableProvider } from "@mcma/aws-dynamodb";
-import { AwsCloudWatchLoggerProvider } from "@mcma/aws-logger";
+import { AwsCloudWatchLoggerProvider, getLogGroupName } from "@mcma/aws-logger";
 import { awsV4Auth } from "@mcma/aws-client";
 import { processCancel, processJobAssignment, processNotification } from "./operations";
-
-const { LogGroupName } = process.env;
 
 const AWS = AWSXRay.captureAWS(require("aws-sdk"));
 
 const authProvider = new AuthProvider().add(awsV4Auth(AWS));
 const dbTableProvider = new DynamoDbTableProvider();
-const loggerProvider = new AwsCloudWatchLoggerProvider("workflow-service-worker", LogGroupName);
+const loggerProvider = new AwsCloudWatchLoggerProvider("workflow-service-worker", getLogGroupName());
 const resourceManagerProvider = new ResourceManagerProvider(authProvider);
 
 const providerCollection = new ProviderCollection({
@@ -45,7 +43,7 @@ export async function handler(event: WorkerRequestProperties, context: Context) 
         });
     } catch (error) {
         logger.error("Error occurred when handling operation '" + event.operationName + "'");
-        logger.error(error.toString());
+        logger.error(error);
     } finally {
         logger.functionEnd(context.awsRequestId);
         await loggerProvider.flush();

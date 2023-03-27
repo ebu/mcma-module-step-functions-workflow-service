@@ -181,20 +181,22 @@ resource "aws_lambda_function" "worker" {
   role             = aws_iam_role.worker.arn
   handler          = "index.handler"
   source_code_hash = filebase64sha256("${path.module}/lambdas/worker.zip")
-  runtime          = "nodejs14.x"
+  runtime          = "nodejs16.x"
   timeout          = "900"
   memory_size      = "2048"
 
-  layers = var.enhanced_monitoring_enabled ? ["arn:aws:lambda:${var.aws_region}:580247275435:layer:LambdaInsightsExtension:14"] : []
+  layers = var.enhanced_monitoring_enabled && contains(keys(local.lambda_insights_extensions), var.aws_region) ? [
+    local.lambda_insights_extensions[var.aws_region]
+  ] : []
 
   environment {
     variables = {
-      LogGroupName        = var.log_group.name
-      TableName           = aws_dynamodb_table.service_table.name
-      PublicUrl           = local.service_url
-      ServicesUrl         = var.service_registry.services_url
-      ServicesAuthType    = var.service_registry.auth_type
-      CloudWatchEventRule = aws_cloudwatch_event_rule.eventbridge_handler_periodic.name,
+      MCMA_LOG_GROUP_NAME             = var.log_group.name
+      MCMA_TABLE_NAME                 = aws_dynamodb_table.service_table.name
+      MCMA_PUBLIC_URL                 = local.service_url
+      MCMA_SERVICE_REGISTRY_URL       = var.service_registry.service_url
+      MCMA_SERVICE_REGISTRY_AUTH_TYPE = var.service_registry.auth_type
+      CLOUD_WATCH_EVENT_RULE          = aws_cloudwatch_event_rule.eventbridge_handler_periodic.name,
     }
   }
 
