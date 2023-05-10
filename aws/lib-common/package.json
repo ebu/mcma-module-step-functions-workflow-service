@@ -6,23 +6,16 @@
     "types": "index.d.ts",
     "license": "Apache-2.0",
     "dependencies": {
-        
+        "@aws-sdk/client-cloudwatch-events": "^3.300.0"
     },
     "devDependencies": {
-        "@mcma/aws-dynamodb": "0.15.0",
-        "@mcma/core": "0.15.0",
-        "@mcma/client": "0.15.0",
-        "@mcma/data": "0.15.0",
-        "@mcma/worker-invoker": "0.15.0",
-        "@types/node": "^16.11.60",
-        "aws-sdk": "^2.1000.0"
+        "@mcma/core": "0.16.0",
+        "@mcma/data": "0.16.0",
+        "@mcma/worker-invoker": "0.16.0",
+        "@types/node": "^18.15.10"
     },
     "peerDependencies": {
-        "@mcma/aws-dynamodb": "0.15.0",
-        "@mcma/core": "0.15.0",
-        "@mcma/client": "0.15.0",
-        "@mcma/data": "0.15.0",
-        "@mcma/worker-invoker": "0.15.0",
-        "aws-sdk": "^2.1000.0"
+        "@mcma/core": "0.16.0",
+        "@mcma/data": "0.16.0"
     }
 }

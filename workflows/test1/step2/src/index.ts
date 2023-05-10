@@ -1,16 +1,19 @@
 import { Context } from "aws-lambda";
+import * as AWSXRay from "aws-xray-sdk-core";
+import { CloudWatchLogsClient } from "@aws-sdk/client-cloudwatch-logs";
+import { GetActivityTaskCommand, SFNClient } from "@aws-sdk/client-sfn";
 
 import { AmeJob, JobParameterBag, JobProfile, McmaException, McmaTracker, NotificationEndpoint, NotificationEndpointProperties } from "@mcma/core";
 import { AwsCloudWatchLoggerProvider, getLogGroupName } from "@mcma/aws-logger";
 import { S3Locator } from "@mcma/aws-s3";
-import * as AWS from "aws-sdk";
 import { awsV4Auth } from "@mcma/aws-client";
 import { AuthProvider, getResourceManagerConfig, ResourceManager } from "@mcma/client";
 
-const loggerProvider = new AwsCloudWatchLoggerProvider("test1-workflow-step2", getLogGroupName());
-const resourceManager = new ResourceManager(getResourceManagerConfig(), new AuthProvider().add(awsV4Auth(AWS)));
+const cloudWatchLogsClient = AWSXRay.captureAWSv3Client(new CloudWatchLogsClient({}));
+const sfnClient = AWSXRay.captureAWSv3Client(new SFNClient({}));
 
-const stepFunctions = new AWS.StepFunctions();
+const loggerProvider = new AwsCloudWatchLoggerProvider("test1-workflow-step2", getLogGroupName(), cloudWatchLogsClient);
+const resourceManager = new ResourceManager(getResourceManagerConfig(), new AuthProvider().add(awsV4Auth()));
 
 const { ACTIVITY_ARN } = process.env;
 
@@ -29,7 +32,7 @@ export async function handler(event: InputEvent, context: Context) {
         logger.debug(event);
         logger.debug(context);
 
-        const data = await stepFunctions.getActivityTask({ activityArn: ACTIVITY_ARN }).promise();
+        const data = await sfnClient.send(new GetActivityTaskCommand({ activityArn: ACTIVITY_ARN }));
 
         const taskToken = data.taskToken;
         if (!taskToken) {

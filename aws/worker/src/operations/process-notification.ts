@@ -1,39 +1,40 @@
+import { SFNClient, SendTaskSuccessCommand, SendTaskFailureCommand } from "@aws-sdk/client-sfn";
+
 import { ProviderCollection, WorkerRequest } from "@mcma/worker";
-import { StepFunctions } from "aws-sdk";
 import { JobStatus } from "@mcma/core";
 
-export async function processNotification(providers: ProviderCollection, workerRequest: WorkerRequest, context: { awsRequestId: string, stepFunctions: StepFunctions }) {
+export async function processNotification(providers: ProviderCollection, workerRequest: WorkerRequest, context: { awsRequestId: string, sfnClient: SFNClient }) {
     const notification = workerRequest.input.notification;
     const taskToken = workerRequest.input.taskToken;
 
     switch (notification.content.status) {
         case JobStatus.Completed: {
-            await context.stepFunctions.sendTaskSuccess({
+            await context.sfnClient.send(new SendTaskSuccessCommand({
                 taskToken: taskToken,
                 output: JSON.stringify(notification.source)
-            }).promise();
+            }));
             break;
         }
         case JobStatus.Failed: {
             const error = "JobFailed";
             const cause = JSON.stringify(notification.content);
 
-            await context.stepFunctions.sendTaskFailure({
+            await context.sfnClient.send(new SendTaskFailureCommand({
                 taskToken: taskToken,
                 error: error,
                 cause: cause
-            }).promise();
+            }));
             break;
         }
         case JobStatus.Canceled: {
             const error = "JobCanceled";
             const cause = JSON.stringify(notification.content);
 
-            await context.stepFunctions.sendTaskFailure({
+            await context.sfnClient.send(new SendTaskFailureCommand({
                 taskToken: taskToken,
                 error: error,
                 cause: cause
-            }).promise();
+            }));
             break;
         }
     }

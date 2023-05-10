@@ -1,5 +1,9 @@
 import { Context } from "aws-lambda";
 import * as AWSXRay from "aws-xray-sdk-core";
+import { CloudWatchEventsClient } from "@aws-sdk/client-cloudwatch-events";
+import { CloudWatchLogsClient } from "@aws-sdk/client-cloudwatch-logs";
+import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
+import { SFNClient} from "@aws-sdk/client-sfn";
 
 import { AuthProvider, ResourceManagerProvider } from "@mcma/client";
 import { ProviderCollection, Worker, WorkerRequest, WorkerRequestProperties } from "@mcma/worker";
@@ -8,11 +12,14 @@ import { AwsCloudWatchLoggerProvider, getLogGroupName } from "@mcma/aws-logger";
 import { awsV4Auth } from "@mcma/aws-client";
 import { processCancel, processJobAssignment, processNotification } from "./operations";
 
-const AWS = AWSXRay.captureAWS(require("aws-sdk"));
+const cloudWatchLogsClient = AWSXRay.captureAWSv3Client(new CloudWatchLogsClient({}));
+const cloudWatchEventsClient = AWSXRay.captureAWSv3Client(new CloudWatchEventsClient({}));
+const dynamoDBClient = AWSXRay.captureAWSv3Client(new DynamoDBClient({}));
+const sfnClient = AWSXRay.captureAWSv3Client(new SFNClient({}));
 
-const authProvider = new AuthProvider().add(awsV4Auth(AWS));
-const dbTableProvider = new DynamoDbTableProvider();
-const loggerProvider = new AwsCloudWatchLoggerProvider("workflow-service-worker", getLogGroupName());
+const authProvider = new AuthProvider().add(awsV4Auth());
+const dbTableProvider = new DynamoDbTableProvider({}, dynamoDBClient);
+const loggerProvider = new AwsCloudWatchLoggerProvider("workflow-service-worker", getLogGroupName(), cloudWatchLogsClient);
 const resourceManagerProvider = new ResourceManagerProvider(authProvider);
 
 const providerCollection = new ProviderCollection({
@@ -38,8 +45,8 @@ export async function handler(event: WorkerRequestProperties, context: Context) 
 
         await worker.doWork(new WorkerRequest(event, logger), {
             awsRequestId: context.awsRequestId,
-            stepFunctions: new AWS.StepFunctions(),
-            cloudWatchEvents: new AWS.CloudWatchEvents(),
+            sfnClient,
+            cloudWatchEventsClient,
         });
     } catch (error) {
         logger.error("Error occurred when handling operation '" + event.operationName + "'");

@@ -1,6 +1,17 @@
 import { Context, ScheduledEvent } from "aws-lambda";
 import * as AWSXRay from "aws-xray-sdk-core";
 import { v4 as uuidv4 } from "uuid";
+import { CloudWatchEventsClient } from "@aws-sdk/client-cloudwatch-events";
+import { CloudWatchLogsClient } from "@aws-sdk/client-cloudwatch-logs";
+import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
+import {
+    DescribeExecutionCommand,
+    DescribeStateMachineForExecutionCommand, DescribeStateMachineForExecutionCommandOutput,
+    GetExecutionHistoryCommand,
+    GetExecutionHistoryCommandInput,
+    HistoryEvent,
+    SFNClient
+} from "@aws-sdk/client-sfn";
 
 import { JobProperties, JobStatus, McmaTracker, ProblemDetail, WorkflowJob } from "@mcma/core";
 import { AwsCloudWatchLoggerProvider, getLogGroupName } from "@mcma/aws-logger";
@@ -14,14 +25,15 @@ import { AuthProvider, ResourceManagerProvider } from "@mcma/client";
 
 const { CLOUD_WATCH_EVENT_RULE } = process.env;
 
-const AWS = AWSXRay.captureAWS(require("aws-sdk"));
+const cloudWatchLogsClient = AWSXRay.captureAWSv3Client(new CloudWatchLogsClient({}));
+const cloudWatchEventsClient = AWSXRay.captureAWSv3Client(new CloudWatchEventsClient({}));
+const dynamoDBClient = AWSXRay.captureAWSv3Client(new DynamoDBClient({}));
+const sfnClient = AWSXRay.captureAWSv3Client(new SFNClient({}));
 
-const authProvider = new AuthProvider().add(awsV4Auth(AWS));
-const cloudWatchEvents = new AWS.CloudWatchEvents();
-const loggerProvider = new AwsCloudWatchLoggerProvider("workflow-service-eventbridge-handler", getLogGroupName(), new AWS.CloudWatchLogs());
+const authProvider = new AuthProvider().add(awsV4Auth());
+const loggerProvider = new AwsCloudWatchLoggerProvider("workflow-service-eventbridge-handler", getLogGroupName(), cloudWatchLogsClient);
 const resourceManagerProvider = new ResourceManagerProvider(authProvider);
-const stepFunctions = new AWS.StepFunctions();
-const tableProvider = new DynamoDbTableProvider({}, new AWS.DynamoDB());
+const tableProvider = new DynamoDbTableProvider({}, dynamoDBClient);
 
 export async function handler(event: ScheduledEvent, context: Context) {
     const tracker = new McmaTracker({
@@ -40,7 +52,7 @@ export async function handler(event: ScheduledEvent, context: Context) {
             return;
         }
         try {
-            await disableEventRule(CLOUD_WATCH_EVENT_RULE, table, cloudWatchEvents, context.awsRequestId, logger);
+            await disableEventRule(CLOUD_WATCH_EVENT_RULE, table, cloudWatchEventsClient, context.awsRequestId, logger);
 
             const queryParameters: Query<WorkflowExecution> = {
                 path: "/workflow-executions",
@@ -62,7 +74,7 @@ export async function handler(event: ScheduledEvent, context: Context) {
                 logger.info("Processing execution for job assignment " + workflowExecution.workerRequest.input?.jobAssignmentDatabaseId);
                 logger.info(workflowExecution);
 
-                const execution = await stepFunctions.describeExecution({ executionArn: workflowExecution.executionArn }).promise();
+                const execution = await sfnClient.send(new DescribeExecutionCommand({ executionArn: workflowExecution.executionArn }));
                 logger.info(execution);
 
                 const workerRequest = new WorkerRequest(workflowExecution.workerRequest, logger);
@@ -85,18 +97,18 @@ export async function handler(event: ScheduledEvent, context: Context) {
                         continue;
                     }
 
-                    const stateMachine = await stepFunctions.describeStateMachineForExecution({ executionArn: workflowExecution.executionArn }).promise();
+                    const stateMachine = await sfnClient.send(new DescribeStateMachineForExecutionCommand({ executionArn: workflowExecution.executionArn }));
                     logger.info(stateMachine);
 
-                    const executionHistoryParams: AWS.StepFunctions.Types.GetExecutionHistoryInput = {
+                    const executionHistoryParams: GetExecutionHistoryCommandInput = {
                         executionArn: workflowExecution.executionArn,
                         maxResults: 1000,
                         includeExecutionData: true,
                         nextToken: undefined,
                     };
-                    const historyEvents: AWS.StepFunctions.Types.HistoryEvent[] = [];
+                    const historyEvents: HistoryEvent[] = [];
                     do {
-                        const executionHistory = await stepFunctions.getExecutionHistory(executionHistoryParams).promise();
+                        const executionHistory = await sfnClient.send(new GetExecutionHistoryCommand(executionHistoryParams));
                         historyEvents.push(...executionHistory.events);
                         executionHistoryParams.nextToken = executionHistory.nextToken;
                     } while (executionHistoryParams.nextToken);
@@ -224,7 +236,7 @@ export async function handler(event: ScheduledEvent, context: Context) {
 
             if (activeExecutions) {
                 logger.info(`There are ${activeExecutions} active executions remaining`);
-                await enableEventRule(CLOUD_WATCH_EVENT_RULE, table, cloudWatchEvents, context.awsRequestId, logger);
+                await enableEventRule(CLOUD_WATCH_EVENT_RULE, table, cloudWatchEventsClient, context.awsRequestId, logger);
             }
         } finally {
             await mutex.unlock();
@@ -238,7 +250,7 @@ export async function handler(event: ScheduledEvent, context: Context) {
     }
 }
 
-function computeProgress(stateMachine: AWS.StepFunctions.DescribeStateMachineForExecutionOutput, historyEvents: AWS.StepFunctions.HistoryEvent[]) {
+function computeProgress(stateMachine: DescribeStateMachineForExecutionCommandOutput, historyEvents: HistoryEvent[]) {
     const workflowDefinition = JSON.parse(stateMachine.definition);
 
 

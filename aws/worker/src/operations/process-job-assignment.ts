@@ -1,15 +1,16 @@
 import { v4 as uuidv4 } from "uuid";
+import { CloudWatchEventsClient } from "@aws-sdk/client-cloudwatch-events";
+import { SFNClient, StartExecutionCommand } from "@aws-sdk/client-sfn";
 
 import { JobStatus, McmaException, NotificationEndpoint, ProblemDetail, WorkflowJob } from "@mcma/core";
 import { ProcessJobAssignmentHelper, ProviderCollection, WorkerRequest } from "@mcma/worker";
 import { DocumentDatabaseTable, getTableName, Query } from "@mcma/data";
-import { CloudWatchEvents, StepFunctions } from "aws-sdk";
 
 import { Workflow, WorkflowExecution, enableEventRule } from "@local/common";
 
 const { CLOUD_WATCH_EVENT_RULE } = process.env;
 
-export async function processJobAssignment(providers: ProviderCollection, workerRequest: WorkerRequest, context: { awsRequestId: string, stepFunctions: StepFunctions, cloudWatchEvents: CloudWatchEvents }) {
+export async function processJobAssignment(providers: ProviderCollection, workerRequest: WorkerRequest, context: { awsRequestId: string, sfnClient: SFNClient, cloudWatchEventsClient: CloudWatchEventsClient }) {
     if (!workerRequest) {
         throw new McmaException("request must be provided");
     }
@@ -98,7 +99,7 @@ async function getWorkflows(table: DocumentDatabaseTable): Promise<Workflow[]> {
     return workflows;
 }
 
-async function executeWorkflow(providers: ProviderCollection, jobAssignmentHelper: ProcessJobAssignmentHelper<WorkflowJob>, context: { awsRequestId: string, stepFunctions: StepFunctions, cloudWatchEvents: CloudWatchEvents }, workflow: Workflow) {
+async function executeWorkflow(providers: ProviderCollection, jobAssignmentHelper: ProcessJobAssignmentHelper<WorkflowJob>, context: { awsRequestId: string,  sfnClient: SFNClient, cloudWatchEventsClient: CloudWatchEventsClient }, workflow: Workflow) {
     const logger = jobAssignmentHelper.logger;
 
     const workflowInput = {
@@ -111,10 +112,10 @@ async function executeWorkflow(providers: ProviderCollection, jobAssignmentHelpe
 
     logger.info("Starting execution of workflow '" + workflow.name + "' with input:");
     logger.info(workflowInput);
-    const data = await context.stepFunctions.startExecution({
+    const data = await context.sfnClient.send(new StartExecutionCommand({
         input: JSON.stringify(workflowInput),
         stateMachineArn: workflow.stateMachineArn
-    }).promise();
+    }));
 
     const workflowExecutionId = "/workflow-executions/" + uuidv4();
 
@@ -128,7 +129,7 @@ async function executeWorkflow(providers: ProviderCollection, jobAssignmentHelpe
         }
     });
 
-    await enableEventRule(CLOUD_WATCH_EVENT_RULE, jobAssignmentHelper.dbTable, context.cloudWatchEvents, context.awsRequestId, logger);
+    await enableEventRule(CLOUD_WATCH_EVENT_RULE, jobAssignmentHelper.dbTable, context.cloudWatchEventsClient, context.awsRequestId, logger);
 
     jobAssignmentHelper.jobOutput.executionArn = data.executionArn;
     await jobAssignmentHelper.updateJobAssignmentOutput();

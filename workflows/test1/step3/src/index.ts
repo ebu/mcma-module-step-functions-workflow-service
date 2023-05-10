@@ -1,5 +1,6 @@
 import { Context } from "aws-lambda";
-import * as AWS from "aws-sdk";
+import * as AWSXRay from "aws-xray-sdk-core";
+import { CloudWatchLogsClient } from "@aws-sdk/client-cloudwatch-logs";
 
 import { AmeJob, McmaException, McmaTracker, NotificationEndpointProperties } from "@mcma/core";
 import { AwsCloudWatchLoggerProvider, getLogGroupName } from "@mcma/aws-logger";
@@ -7,8 +8,10 @@ import { S3Locator } from "@mcma/aws-s3";
 import { AuthProvider, getResourceManagerConfig, ResourceManager } from "@mcma/client";
 import { awsV4Auth } from "@mcma/aws-client";
 
-const loggerProvider = new AwsCloudWatchLoggerProvider("test1-workflow-step3", getLogGroupName());
-const resourceManager = new ResourceManager(getResourceManagerConfig(), new AuthProvider().add(awsV4Auth(AWS)));
+const cloudWatchLogsClient = AWSXRay.captureAWSv3Client(new CloudWatchLogsClient({}));
+
+const loggerProvider = new AwsCloudWatchLoggerProvider("test1-workflow-step1", getLogGroupName(), cloudWatchLogsClient);
+const resourceManager = new ResourceManager(getResourceManagerConfig(), new AuthProvider().add(awsV4Auth()));
 
 type InputEvent = {
     input?: {

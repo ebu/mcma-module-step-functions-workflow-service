@@ -1,9 +1,10 @@
+import { SFNClient, StopExecutionCommand} from "@aws-sdk/client-sfn";
+
 import { ProcessJobAssignmentHelper, ProviderCollection, WorkerRequest } from "@mcma/worker";
-import { StepFunctions } from "aws-sdk";
 import { getTableName } from "@mcma/data";
 import { JobStatus, ProblemDetail, WorkflowJob } from "@mcma/core";
 
-export async function processCancel(providers: ProviderCollection, workerRequest: WorkerRequest, context: { awsRequestId: string, stepFunctions: StepFunctions }) {
+export async function processCancel(providers: ProviderCollection, workerRequest: WorkerRequest, context: { awsRequestId: string, sfnClient: SFNClient }) {
     const table = await providers.dbTableProvider.get(getTableName());
     const resourceManager = providers.resourceManagerProvider.get();
     const jobAssignmentHelper = new ProcessJobAssignmentHelper<WorkflowJob>(table, resourceManager, workerRequest);
@@ -26,9 +27,9 @@ export async function processCancel(providers: ProviderCollection, workerRequest
             return;
         }
 
-        await context.stepFunctions.stopExecution({
+        await context.sfnClient.send(new StopExecutionCommand({
             executionArn: jobAssignmentHelper.jobOutput.executionArn
-        }).promise();
+        }));
 
         await jobAssignmentHelper.cancel();
     } catch (error) {
