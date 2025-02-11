@@ -29,14 +29,14 @@ resource "aws_cloudwatch_log_group" "main" {
 #########################
 
 module "service_registry" {
-  source = "https://ch-ebu-mcma-module-repository.s3.eu-central-1.amazonaws.com/ebu/service-registry/aws/0.16.0/module.zip"
+  source = "github.com/ebu/mcma-module-service-registry//aws/module?ref=v1.0.0"
 
   prefix = "${var.global_prefix}-service-registry"
 
-  stage_name = var.environment_type
+  api_security_auth_type = "AWS4"
 
-  aws_region     = var.aws_region
-  aws_profile    = var.aws_profile
+  aws_region = var.aws_region
+  stage_name = var.environment_type
 
   log_group                   = aws_cloudwatch_log_group.main
   api_gateway_metrics_enabled = true
@@ -49,14 +49,15 @@ module "service_registry" {
 #########################
 
 module "job_processor" {
-  source = "https://ch-ebu-mcma-module-repository.s3.eu-central-1.amazonaws.com/ebu/job-processor/aws/0.16.0/module.zip"
+  source = "github.com/ebu/mcma-module-job-processor//aws/module?ref=v1.0.0"
 
   prefix = "${var.global_prefix}-job-processor"
 
-  stage_name     = var.environment_type
-  dashboard_name = var.global_prefix
+  api_security_auth_type = "AWS4"
 
   aws_region     = var.aws_region
+  stage_name     = var.environment_type
+  dashboard_name = var.global_prefix
 
   service_registry = module.service_registry
   execute_api_arns = [
@@ -68,6 +69,7 @@ module "job_processor" {
   log_group                   = aws_cloudwatch_log_group.main
   api_gateway_metrics_enabled = true
   xray_tracing_enabled        = true
+  enhanced_monitoring_enabled = true
 }
 
 #########################
@@ -75,7 +77,7 @@ module "job_processor" {
 #########################
 
 module "mediainfo_ame_service" {
-  source = "https://ch-ebu-mcma-module-repository.s3.eu-central-1.amazonaws.com/ebu/mediainfo-ame-service/aws/1.0.0/module.zip"
+  source = "github.com/ebu/mcma-module-mediainfo-ame-service//aws/module?ref=v1.0.0"
 
   prefix = "${var.global_prefix}-mediainfo-ame-service"
 
@@ -84,9 +86,10 @@ module "mediainfo_ame_service" {
 
   service_registry = module.service_registry
 
-  log_group = aws_cloudwatch_log_group.main
+  log_group                   = aws_cloudwatch_log_group.main
   api_gateway_metrics_enabled = true
   xray_tracing_enabled        = true
+  enhanced_monitoring_enabled = true
 }
 
 ########################################
@@ -94,17 +97,17 @@ module "mediainfo_ame_service" {
 ########################################
 
 module "stepfunctions_workflow_service" {
-  source = "../aws/build/staging"
+  source = "../aws/module"
 
   prefix = "${var.global_prefix}-sf-workflow-service"
 
-  stage_name = var.environment_type
+  stage_name               = var.environment_type
   aws_region               = var.aws_region
   iam_permissions_boundary = var.aws_iam_permissions_boundary
 
   service_registry = module.service_registry
 
-  log_group = aws_cloudwatch_log_group.main
+  log_group                   = aws_cloudwatch_log_group.main
   api_gateway_metrics_enabled = true
   xray_tracing_enabled        = true
 

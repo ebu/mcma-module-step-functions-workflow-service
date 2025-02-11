@@ -1,5 +1,5 @@
 import { Context } from "aws-lambda";
-import * as AWSXRay from "aws-xray-sdk-core";
+import { captureAWSv3Client } from "aws-xray-sdk-core";
 import { CloudWatchLogsClient } from "@aws-sdk/client-cloudwatch-logs";
 import { GetActivityTaskCommand, SFNClient } from "@aws-sdk/client-sfn";
 
@@ -9,8 +9,8 @@ import { S3Locator } from "@mcma/aws-s3";
 import { awsV4Auth } from "@mcma/aws-client";
 import { AuthProvider, getResourceManagerConfig, ResourceManager } from "@mcma/client";
 
-const cloudWatchLogsClient = AWSXRay.captureAWSv3Client(new CloudWatchLogsClient({}));
-const sfnClient = AWSXRay.captureAWSv3Client(new SFNClient({}));
+const cloudWatchLogsClient = captureAWSv3Client(new CloudWatchLogsClient({}));
+const sfnClient = captureAWSv3Client(new SFNClient({}));
 
 const loggerProvider = new AwsCloudWatchLoggerProvider("test1-workflow-step2", getLogGroupName(), cloudWatchLogsClient);
 const resourceManager = new ResourceManager(getResourceManagerConfig(), new AuthProvider().add(awsV4Auth()));
@@ -26,7 +26,7 @@ type InputEvent = {
 }
 
 export async function handler(event: InputEvent, context: Context) {
-    const logger = loggerProvider.get(context.awsRequestId, event.tracker);
+    const logger = await loggerProvider.get(context.awsRequestId, event.tracker);
     try {
         logger.functionStart(context.awsRequestId);
         logger.debug(event);

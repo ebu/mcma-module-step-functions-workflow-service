@@ -1,26 +1,26 @@
-apply from: "${project.rootDir}/gradle-tasks-for-module.gradle"
-
 task copyApiHandler(type: Copy) {
     dependsOn "api-handler:build"
     from file("api-handler/build/dist/lambda.zip")
-    into "build/staging/lambdas"
+    into "module/lambdas"
     rename { "api-handler.zip" }
 }
 
 task copyWorker(type: Copy) {
     dependsOn "worker:build"
     from file("worker/build/dist/lambda.zip")
-    into "build/staging/lambdas"
+    into "module/lambdas"
     rename { "worker.zip" }
 }
 
-task copyPeriodicExecutionChecker(type: Copy) {
+task copyEventBridgeHandler(type: Copy) {
     dependsOn "eventbridge-handler:build"
     from file("eventbridge-handler/build/dist/lambda.zip")
-    into "build/staging/lambdas"
+    into "module/lambdas"
     rename { "eventbridge-handler.zip" }
 }
 
-build.dependsOn copyApiHandler
-build.dependsOn copyWorker
-build.dependsOn copyPeriodicExecutionChecker
+task build {
+    dependsOn copyApiHandler
+    dependsOn copyWorker
+    dependsOn copyEventBridgeHandler
+}

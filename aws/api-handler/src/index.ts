@@ -1,5 +1,5 @@
 import { APIGatewayProxyEvent, Context } from "aws-lambda";
-import * as AWSXRay from "aws-xray-sdk-core";
+import { captureAWSv3Client} from "aws-xray-sdk-core";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { LambdaClient } from "@aws-sdk/client-lambda";
 
@@ -11,8 +11,8 @@ import { getWorkerFunctionId } from "@mcma/worker-invoker";
 import { getTableName } from "@mcma/data";
 import { ConsoleLoggerProvider } from "@mcma/core";
 
-const dynamoDBClient = AWSXRay.captureAWSv3Client(new DynamoDBClient({}));
-const lambdaClient = AWSXRay.captureAWSv3Client(new LambdaClient({}));
+const dynamoDBClient = captureAWSv3Client(new DynamoDBClient({}));
+const lambdaClient = captureAWSv3Client(new LambdaClient({}));
 
 const dbTableProvider = new DynamoDbTableProvider({}, dynamoDBClient);
 const loggerProvider = new ConsoleLoggerProvider("workflow-service-api-handler");
@@ -76,7 +76,7 @@ export async function handler(event: APIGatewayProxyEvent, context: Context) {
     console.log(JSON.stringify(event, null, 2));
     console.log(JSON.stringify(context, null, 2));
 
-    const logger = loggerProvider.get(context.awsRequestId);
+    const logger = await loggerProvider.get(context.awsRequestId);
     try {
         logger.functionStart(context.awsRequestId);
         logger.debug(event);

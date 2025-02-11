@@ -1,5 +1,5 @@
 import { Context, ScheduledEvent } from "aws-lambda";
-import * as AWSXRay from "aws-xray-sdk-core";
+import { captureAWSv3Client} from "aws-xray-sdk-core";
 import { v4 as uuidv4 } from "uuid";
 import { CloudWatchEventsClient } from "@aws-sdk/client-cloudwatch-events";
 import { CloudWatchLogsClient } from "@aws-sdk/client-cloudwatch-logs";
@@ -25,10 +25,10 @@ import { AuthProvider, ResourceManagerProvider } from "@mcma/client";
 
 const { CLOUD_WATCH_EVENT_RULE } = process.env;
 
-const cloudWatchLogsClient = AWSXRay.captureAWSv3Client(new CloudWatchLogsClient({}));
-const cloudWatchEventsClient = AWSXRay.captureAWSv3Client(new CloudWatchEventsClient({}));
-const dynamoDBClient = AWSXRay.captureAWSv3Client(new DynamoDBClient({}));
-const sfnClient = AWSXRay.captureAWSv3Client(new SFNClient({}));
+const cloudWatchLogsClient = captureAWSv3Client(new CloudWatchLogsClient({}));
+const cloudWatchEventsClient = captureAWSv3Client(new CloudWatchEventsClient({}));
+const dynamoDBClient = captureAWSv3Client(new DynamoDBClient({}));
+const sfnClient = captureAWSv3Client(new SFNClient({}));
 
 const authProvider = new AuthProvider().add(awsV4Auth());
 const loggerProvider = new AwsCloudWatchLoggerProvider("workflow-service-eventbridge-handler", getLogGroupName(), cloudWatchLogsClient);
@@ -40,7 +40,7 @@ export async function handler(event: ScheduledEvent, context: Context) {
         id: uuidv4(),
         label: "Periodic Execution Checker - " + new Date().toUTCString()
     });
-    const logger = loggerProvider.get(context.awsRequestId, tracker);
+    const logger = await loggerProvider.get(context.awsRequestId, tracker);
     logger.functionStart(context.awsRequestId);
     logger.debug(event);
     logger.debug(context);
